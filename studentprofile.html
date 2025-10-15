@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Profile</title>
+  <style>
+    body {
+      background-color: #f4f8fb;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 50px;
+    }
+    .profile-card {
+      background-color: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 600px;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+    .profile-pic {
+      background-color: #007bba;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      color: white;
+      font-size: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .profile-details p {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+    .profile-details span {
+      font-weight: bold;
+      color: #005a9e;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="profile-card">
+    <div class="profile-pic" id="initials">DJ</div>
+    <div class="profile-details" id="profileContent">
+      <!-- JS Will Fill This -->
+    </div>
+  </div>
+
+  <script>
+    const data = {
+      disha: {
+        name: "Disha Jain",
+        branch: "Information Technology",
+        year: "Final Year",
+        email: "dishajain@college.edu",
+        internship: "SDE Intern @ Google",
+      },
+      annapurna: {
+        name: "Annapurna",
+        branch: "Information Technology",
+        year: "Final Year",
+        email: "annapurna@college.edu",
+        internship: "SDE @ Intuit",
+      },
+      anusha: {
+        name: "Anusha",
+        branch: "Information Technology",
+        year: "Final Year",
+        email: "anusha@college.edu",
+        internship: "SDE @ Adobe",
+      },
+      ragini: {
+        name: "Ragini",
+        branch: "Information Technology",
+        year: "Final Year",
+        email: "ragini@college.edu",
+        internship: "SDE @ Microsoft",
+      }
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("id");
+
+    if (data[id]) {
+      const student = data[id];
+      document.getElementById("initials").innerText = student.name.split(" ").map(w => w[0]).join("");
+      document.getElementById("profileContent").innerHTML = `
+        <p><span>Name:</span> ${student.name}</p>
+        <p><span>Branch:</span> ${student.branch}</p>
+        <p><span>Year:</span> ${student.year}</p>
+        <p><span>Email:</span> ${student.email}</p>
+        <p><span>Internship:</span> ${student.internship}</p>
+      `;
+    } else {
+      document.getElementById("profileContent").innerHTML = "<p>Profile not found.</p>";
+    }
+  </script>
+
+</body>
+</html>

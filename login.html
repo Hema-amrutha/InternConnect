@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+    }
+
+    .left-side {
+      flex: 1;
+      background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+        url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80') no-repeat center center;
+      background-size: cover;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .left-side h1 {
+      font-size: 2.5rem;
+      text-align: center;
+      max-width: 80%;
+    }
+
+    .right-side {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f9f9f9;
+    }
+
+    .form-container {
+      background-color: white;
+      padding: 2rem 3rem;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+
+    label {
+      font-weight: 500;
+      color: #444;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      transition: border 0.3s;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: #667eea;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #5a67d8;
+    }
+
+    p {
+      text-align: center;
+      margin-top: 1rem;
+      color: #333;
+    }
+
+    a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .left-side {
+        display: none;
+      }
+      .right-side {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="left-side">
+    <h1>Welcome to InternConnect – Learn, Connect, and Grow</h1>
+  </div>
+  <div class="right-side">
+    <div class="form-container">
+      <h2>Login</h2>
+      <form action="/login" method="POST">
+        <label>Email:</label><br>
+        <input type="email" name="email" required><br>
+
+        <label>Password:</label><br>
+        <input type="password" name="password" required><br>
+
+        <button type="submit">Login</button>
+      </form>
+      <p>Don't have an account? <a href="/register">Register here</a></p>
+    </div>
+  </div>
+</body>
+</html>

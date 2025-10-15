@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile - InternConnect</title>
+  <style>
+    /* You can add your CSS here */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f5f5f5;
+    }
+    header {
+      background: #0077b6;
+      color: white;
+      padding: 1rem;
+    }
+    header h1 {
+      margin: 0;
+    }
+    nav ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+    }
+    .main {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .profile-image {
+      width: 80px;
+      height: 80px;
+      background: #007bff;
+      color: white;
+      font-size: 32px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      margin-bottom: 1rem;
+    }
+    .profile-details p {
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
+    }
+    .edit-button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    footer {
+      text-align: center;
+      margin: 3rem 0 1rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>InternConnect</h1>
+    <nav>
+      <ul>
+        <li><a href="intern home.html">Home</a></li>
+        <li><a href="my_requests.html">My Requests</a></li>
+        <li><a href="intern_chat.html">Chats</a></li>
+        <li><a href="profile.html">Profile</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="main">
+    <div class="profile-container">
+      <div class="profile-image" id="profile-initials">?</div>
+      <div class="profile-details">
+        <p><strong>Name:</strong> <span id="name">Loading...</span></p>
+        <p><strong>Branch:</strong> <span id="branch">Loading...</span></p>
+        <p><strong>Year:</strong> <span id="year">Loading...</span></p>
+        <p><strong>Email:</strong> <span id="email">Loading...</span></p>
+        <p><strong>Internship:</strong> <span id="internship">Loading...</span></p>
+        <button class="edit-button" onclick="alert('Edit feature coming soon!')">Edit Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    InternConnect © 2025 | All rights reserved.
+  </footer>
+
+  <script>
+    // Fetch profile from the API
+    fetch('/api/profile')
+      .then(res => {
+        if (!res.ok) {
+          // If unauthorized or error, redirect to login
+          window.location.href = '/login.html';
+          return;
+        }
+        return res.json();
+      })
+      .then(user => {
+        if (!user) return;
+
+        document.getElementById('name').textContent = user.name;
+        document.getElementById('branch').textContent = user.branch || 'N/A';
+        document.getElementById('year').textContent = user.year || 'N/A';
+        document.getElementById('email').textContent = user.email;
+        const internship = user.internship 
+                   ? `${user.internship.role || ''} at ${user.internship.company || ''}`.trim() 
+                   : 'N/A';
+
+document.getElementById('internship').textContent = internship || 'N/A';
+
+
+        const initials = user.name.split(" ").map(n => n[0]).join("").toUpperCase();
+        document.getElementById('profile-initials').textContent = initials;
+      })
+      .catch(() => {
+        window.location.href = '/login.html';
+      });
+  </script>
+  
+
+</body>
+</html>

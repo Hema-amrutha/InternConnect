@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InternConnect Chat</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      color: black;
+    }
+
+    header {
+      background-color: #0077b6;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav ul li a:hover {
+      text-decoration: underline;
+    }
+
+    .main {
+      display: flex;
+      height: calc(100vh - 80px);
+    }
+
+    .sidebar {
+      width: 25%;
+      background: #ffffff;
+      padding: 10px;
+      border-right: 2px solid #ddd;
+      overflow-y: auto;
+    }
+
+    .sidebar h3 {
+      color: #0077b6;
+      text-align: center;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar ul li {
+      padding: 12px;
+      background: #f1f1f1;
+      margin: 8px 0;
+      cursor: pointer;
+      border-radius: 8px;
+      text-align: center;
+      transition: background 0.3s;
+    }
+
+    .sidebar ul li:hover {
+      background: #0077b6;
+      color: white;
+    }
+
+    .chat-container {
+      width: 75%;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      border-left: 2px solid #ddd;
+    }
+
+    .chat-header {
+      background: #0077b6;
+      padding: 15px;
+      text-align: center;
+      color: white;
+      font-weight: bold;
+      border-bottom: 2px solid #005f8c;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      background: #f9f9f9;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      margin: 10px;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-box {
+      display: flex;
+      padding: 10px;
+      background: #f1f1f1;
+      border-top: 2px solid #ddd;
+    }
+
+    .input-box input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 20px;
+      outline: none;
+      background: #fff;
+      color: #333;
+      border: 1px solid #ddd;
+    }
+
+    .input-box button {
+      padding: 12px 15px;
+      border: none;
+      background: #0077b6;
+      color: white;
+      cursor: pointer;
+      border-radius: 20px;
+      margin-left: 10px;
+      transition: background 0.3s;
+    }
+
+    .input-box button:hover {
+      background: #005f8c;
+    }
+
+    .message {
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 10px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+
+    .sent {
+      background: #95bacd;
+      color: white;
+      align-self: flex-end;
+      border-radius: 18px 18px 0 18px;
+      max-width: 60%;
+      padding: 10px;
+    }
+
+    .received {
+      background: #ffffff;
+      color: black;
+      align-self: flex-start;
+      border-radius: 18px 18px 18px 0;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>InternConnect</h1>
+    <nav>
+      <ul>
+        <li><a href="intern_home.html">Home</a></li>
+        <li><a href="my_requests.html">My Connections</a></li>
+        <li><a href="intern_chat.html">Chats</a></li>
+        <li><a href="profile.html">Profile</a></li>
+         <a href="/logout">Logout</a>
+      </ul>
+    </nav>
+  </header>
+
+  
+  <div class="main">
+    <div class="sidebar">
+      <h3>Connected Students</h3>
+      <ul id="connected-students-list">
+        <!-- Filled by JS -->
+      </ul>
+    </div>
+
+    <div class="chat-container">
+      <div class="chat-header" id="chat-title">Select a student to chat</div>
+      <div class="chat-box" id="chat-box"></div>
+      <div class="input-box">
+        <input type="text" id="message-input" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+  const socket = io("http://localhost:3000"); // Use your server domain in production
+  const internId = localStorage.getItem("loggedInInternId");
+  let currentChat = '';
+
+  async function loadConnectedStudents() {
+    if (!internId) {
+      console.error('No loggedInInternId found in localStorage');
+      document.getElementById('connected-students-list').innerHTML = '<li>Please login to see connected students.</li>';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/intern/accepted-students/${internId}`);
+      const students = await res.json();
+
+      const connectedList = document.getElementById('connected-students-list');
+      connectedList.innerHTML = '';
+
+      if (!Array.isArray(students) || students.length === 0) {
+        connectedList.innerHTML = '<li>No connected students yet.</li>';
+        return;
+      }
+
+      students.forEach(student => {
+        const li = document.createElement('li');
+        li.textContent = student.name;
+        li.onclick = () => openChat(student._id, student.name);
+        li.classList.add('student-item');
+        li.style.cursor = 'pointer';
+        connectedList.appendChild(li);
+      });
+
+    } catch (error) {
+      console.error('Failed to load connected students:', error);
+      document.getElementById('connected-students-list').innerHTML = '<li>Error loading students.</li>';
+    }
+  }
+
+  function openChat(studentId, studentName) {
+  currentChat = studentId;
+  document.getElementById('chat-title').innerText = `Chat with ${studentName}`;
+  document.getElementById('chat-box').innerHTML = '';
+  document.title = `Chat with ${studentName}`;
+
+  const roomId = [internId, studentId].sort().join('-');  // ✅ Same logic everywhere
+  socket.emit('joinRoom', { roomId });  // ✅ Explicitly send roomId
+
+  fetch(`/api/messages/${internId}/${studentId}`)
+    .then(res => res.json())
+    .then(messages => {
+      const chatBox = document.getElementById('chat-box');
+      messages.forEach(msg => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = msg.senderId === internId ? 'message sent' : 'message received';
+        msgDiv.innerHTML = `<strong>${msg.senderId === internId ? 'You' : 'Student'}:</strong> ${msg.message}`;
+        chatBox.appendChild(msgDiv);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
+
+  function sendMessage() {
+    const input = document.getElementById('message-input');
+    const message = input.value.trim();
+    if (message === '' || currentChat === '') return;
+
+    const roomId = [internId, currentChat].sort().join('-');
+    socket.emit('sendMessage', {
+      roomId,
+      senderId: internId,
+      receiverId: currentChat,
+      message
+    });
+
+    const chatBox = document.getElementById('chat-box');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message sent';
+    msgDiv.innerHTML = `<strong>You:</strong> ${message}`;
+    chatBox.appendChild(msgDiv);
+    input.value = '';
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  socket.on('receiveMessage', (data) => {
+    if (data.senderId !== currentChat) return;
+    const chatBox = document.getElementById('chat-box');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message received';
+    msgDiv.innerHTML = `<strong>Student:</strong> ${data.message}`;
+    chatBox.appendChild(msgDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    loadConnectedStudents();
+  });
+</script>
+
+</body>
+</html>

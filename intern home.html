@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InternConnect - Homepage</title>
+  <style>
+    /* General Body Styles */
+    body {
+      background-color: #ecf0f1; /* Light Gray Background */
+      color: #2c3e50; /* Dark Gray Text */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navigation Bar */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #3498db; /* Light Blue */
+      padding: 20px 30px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo-title {
+      font-weight: bold;
+      font-size: 22px;
+      color: #ffffff; /* White Text */
+      text-transform: uppercase;
+    }
+
+    .logo-subtext {
+      font-size: 14px;
+      color: #95a5a6; /* Light Gray */
+      margin-top: 5px;
+    }
+
+    nav a {
+      color: #ffffff; /* White Links */
+      margin: 0 15px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #f1c40f; /* Yellow on Hover */
+    }
+
+    /* Welcome Banner */
+    .welcome-banner {
+      background-color: #ffffff; /* White Background */
+      color: #2980b9; /* Dark Blue Text */
+      padding: 20px;
+      font-size: 20px;
+      border-radius: 15px;
+      margin: 30px auto 20px;
+      font-weight: 600;
+      text-align: center;
+      width: 85%;
+      box-shadow: 0 0 15px rgba(41, 128, 185, 0.2);
+      transition: background-color 0.3s;
+    }
+
+    .welcome-banner:hover {
+      background-color: #f5f5f5; /* Light Gray on Hover */
+    }
+
+    /* Search and Filter Section */
+    .search-filter {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin: 0 auto 30px auto;
+      width: 85%;
+    }
+
+    .search-bar,
+    .filter-dropdown {
+      padding: 12px 25px;
+      border-radius: 25px;
+      border: none;
+      background-color: #ffffff; /* White */
+      color: #2c3e50; /* Dark Gray Text */
+      font-size: 16px;
+      width: 100%;
+      max-width: 350px;
+      transition: background-color 0.3s;
+    }
+
+    .search-bar:focus,
+    .filter-dropdown:focus {
+      background-color: #3498db; /* Light Blue Focus */
+      outline: none;
+      color: #ffffff; /* White Text */
+    }
+
+    /* Student List */
+    .student-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 auto;
+      width: 85%;
+    }
+
+    /* Student Card */
+    .student-card {
+      background-color: #ffffff; /* White Background */
+      border-left: 5px solid #2ecc71; /* Green Border */
+      border-radius: 10px;
+      width: 100%;
+      padding: 20px;
+      margin: 15px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+
+    }
+
+    .student-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
+    }
+
+    .student-card div {
+      font-size: 16px;
+      color: #2c3e50; /* Dark Gray Text */
+    }
+
+    .student-card strong {
+      color: #3498db; /* Light Blue Text */
+      font-size: 18px;
+    }
+
+    /* Request Button */
+    .request-btn {
+      background-color: #2980b9; /* Dark Blue */
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .request-btn:hover {
+      background-color: #1c5980; /* Darker Blue on Hover */
+    }
+
+    /* Footer */
+    footer {
+      background-color: #2c3e50; /* Dark Gray */
+      text-align: center;
+      padding: 25px;
+      color: white;
+      margin-top: auto;
+      font-size: 14px;
+    }
+  .student-card-content {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-pic {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #bdc3c7;
+  background-size: cover;
+  background-position: center;
+}
+
+
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <div>
+      <div class="logo-title">InternConnect</div>
+      <div class="logo-subtext">Learn. Connect. Succeed.</div>
+    </div>
+    <div>
+      <a href="#">Home</a>
+      <a href="my_requests.html">My Connections</a>
+      <a href="intern_chat.html">Chats</a>
+      <a href="profile.html">Profile</a>
+       <a href="/logout">Logout</a>
+    </div>
+  </nav>
+
+  <!-- Welcome Banner -->
+ <div class="welcome-banner" id="welcomeBanner">Loading your info...</div>
+
+
+  <!-- Search and Filter -->
+  <div class="search-filter">
+    <input class="search-bar" type="text" placeholder="Search for senior students...">
+    <select class="filter-dropdown">
+      <option value="">All Branches</option>
+      <option value="CSE">CSE</option>
+      <option value="ECE">ECE</option>
+      <option value="IT">IT</option>
+      <option value="EEE">EEE</option>
+    </select>
+  </div>
+
+  <!-- List of Senior Students -->
+
+  <!-- List of Senior Students -->
+<div class="student-list" id="internList">
+  <!-- Intern cards will be dynamically inserted here -->
+</div>
+
+<script>
+async function loadInterns() {
+  try {
+    const res = await fetch('/api/interns');
+    if (!res.ok) throw new Error('Failed to fetch interns');
+    const interns = await res.json();
+
+    // Get requests sent by the logged-in student
+    const myRequests = await fetch('/api/myrequests');
+    if (!myRequests.ok) throw new Error('Failed to fetch requests');
+    const requestData = await myRequests.json();
+    const requestMap = new Map(requestData.map(r => [r.receiverId, r.status]));
+
+    const container = document.getElementById('internList');
+    container.innerHTML = '';
+
+    interns.forEach(intern => {
+      const profilePic = intern.profilePic?.length > 0 ? intern.profilePic : 'images/default.jpg';
+      const role = intern.internship?.internRole || 'Role not specified';
+      const company = intern.internship?.company || 'Company not specified';
+
+      const status = requestMap.get(intern._id) || null;
+
+      let buttonHTML = '';
+      if (status === 'Accepted') {
+        buttonHTML = `<button class="chat-btn">Chat</button>`;
+      } else if (status === 'Pending') {
+        buttonHTML = `<button class="request-btn" disabled>Requested</button>`;
+      } else {
+        buttonHTML = `<button class="request-btn">Connect</button>`;
+      }
+
+      const card = document.createElement('div');
+      card.classList.add('student-card');
+      card.style.cursor = 'pointer';
+      card.innerHTML = `
+        <div class="student-card-content" style="justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+            <div class="profile-pic" style="background-image: url('${profilePic}')"></div>
+            <div>
+              <div class="intern-name" style="font-weight: bold; font-size: 18px; color: #2980b9;">${intern.name}</div>
+              <div style="font-size: 16px; color: #2c3e50;">${role}</div>
+              <div style="font-size: 16px; color: #2c3e50;">${company}</div>
+            </div>
+          </div>
+          ${buttonHTML}
+        </div>
+      `;
+
+      // Click on card opens profile
+      card.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('request-btn') && !e.target.classList.contains('chat-btn')) {
+          window.location.href = `intern_profile.html?id=${intern._id}`;
+        }
+      });
+
+      // Click on Connect
+      const requestBtn = card.querySelector('.request-btn');
+      if (requestBtn && !requestBtn.disabled) {
+        requestBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          try {
+            const res = await fetch('/api/requests', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ receiverId: intern._id })
+            });
+            if (!res.ok) throw new Error('Failed to send request');
+            alert('Request sent!');
+            requestBtn.disabled = true;
+            requestBtn.textContent = 'Requested';
+          } catch (err) {
+            alert('Error sending request');
+            console.error(err);
+          }
+        });
+      }
+
+      // Click on Chat
+      const chatBtn = card.querySelector('.chat-btn');
+      if (chatBtn) {
+        chatBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.location.href = `chatpage.html?id=${intern._id}`;
+        });
+      }
+
+      container.appendChild(card);
+    });
+
+  } catch (error) {
+    console.error('Error loading interns:', error);
+    document.getElementById('internList').textContent = 'Failed to load interns.';
+  }
+}
+
+loadInterns();
+</script>
+
+<script>
+  // Welcome message
+  fetch('/api/profile')
+  .then(response => {
+    if (!response.ok) throw new Error('Not logged in');
+    return response.json();
+  })
+  .then(user => {
+    const banner = document.getElementById('welcomeBanner');
+    banner.textContent = `👋 Welcome, ${user.name} – Ready to connect with senior interns?`;
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById('welcomeBanner').textContent = "Welcome – Please log in.";
+    window.location.href = '/'; // <--- This line redirects to login if not logged in
+  });
+
+
+  loadInterns();
+</script>
+
+  <!-- Footer -->
+  <footer>
+    InternConnect &copy; 2025 | Built for student networking and internship guidance.
+  </footer>
+
+
+</body>
+</html>

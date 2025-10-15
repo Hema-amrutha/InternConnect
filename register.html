@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+    }
+
+    .left-side {
+      flex: 1;
+      background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+        url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80') no-repeat center center;
+      background-size: cover;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .left-side h1 {
+      font-size: 2.5rem;
+      text-align: center;
+      max-width: 80%;
+    }
+
+    .right-side {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f9f9f9;
+    }
+
+    .form-container {
+      background-color: white;
+      padding: 2rem 3rem;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+
+    label {
+      font-weight: 500;
+      color: #444;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      transition: border 0.3s;
+      font-size: 1rem;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+      border-color: #667eea;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background-color: #5a67d8;
+    }
+
+    p {
+      text-align: center;
+      margin-top: 1rem;
+      color: #333;
+    }
+
+    a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    #internFields {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .left-side {
+        display: none;
+      }
+      .right-side {
+        flex: 1;
+      }
+    }
+  </style>
+  <script>
+    function toggleInternFields() {
+      const roleSelect = document.getElementById('role');
+      const internFields = document.getElementById('internFields');
+      internFields.style.display = roleSelect.value === 'intern' ? 'block' : 'none';
+    }
+
+    window.onload = function () {
+      document.getElementById('role').addEventListener('change', toggleInternFields);
+      toggleInternFields();
+    };
+  </script>
+</head>
+<body>
+  <div class="left-side">
+    <h1>Welcome to InternConnect – Learn, Connect, and Succeed</h1>
+  </div>
+  <div class="right-side">
+    <div class="form-container">
+      <h2>Register</h2>
+<!-- NO CHANGES TO HEAD, STYLE, OR SCRIPT SECTION -->
+<!-- Only form content is updated below -->
+
+<form action="/register" method="POST">
+  <label for="name">Name:</label>
+  <input type="text" name="name" id="name" placeholder="Your full name" required />
+
+  <label for="email">College Email:</label>
+  <input type="email" name="email" id="email" placeholder="example@svecw.edu.in" required />
+
+  <label for="password">Password:</label>
+  <input type="password" name="password" id="password" placeholder="Enter password" required />
+
+  <label for="branch">Branch:</label>
+  <input type="text" name="branch" id="branch" placeholder="Your branch" required />
+
+  <label for="year">Year:</label>
+  <input type="text" name="year" id="year" placeholder="Your year (e.g., 3rd)" required />
+
+  <label for="role">Role:</label>
+  <select name="role" id="role" required>
+    <option value="">Select role</option>
+    <option value="student">Student</option>
+    <option value="intern">Intern</option>
+  </select>
+
+  <!-- Intern-specific fields -->
+  <div id="internFields">
+    <label for="internRole">Internship Role:</label>
+    <input type="text" name="internRole" id="internRole" placeholder="e.g., Frontend Developer">
+
+    <label for="internCompany">Company:</label>
+    <input type="text" name="internCompany" id="internCompany" placeholder="e.g., Google">
+  </div>
+
+  <button type="submit">Register</button>
+</form>
+<p>Already have an account? <a href="/login">Login here</a></p>
+
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Requests - InternConnect</title>
+  <style>
+    /* General Styling */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #ecf0f1; /* Light Gray */
+      color: #2c3e50; /* Dark Gray */
+    }
+
+    header {
+      background-color: #3498db; /* Light Blue */
+      color: #ffffff; /* White Text */
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    header nav ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      gap: 20px;
+    }
+
+    header nav ul li {
+      display: inline;
+    }
+
+    header nav ul li a {
+      color: #ffffff; /* White Links */
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      transition: color 0.3s;
+    }
+
+    header nav ul li a:hover {
+      color: #f1c40f; /* Yellow on Hover */
+    }
+
+    .requests-container {
+      margin: 20px auto;
+      width: 85%;
+      max-width: 900px;
+      min-height: 200px;
+    }
+
+    .request-card {
+      background-color: #ffffff; /* White */
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .request-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2); /* Blue shadow */
+    }
+
+    .request-card .details {
+      flex: 1;
+    }
+
+    .request-card .details p {
+      margin: 5px 0;
+    }
+
+    .request-card .details p strong a {
+      color: #2980b9;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .request-card .details p strong a:hover {
+      text-decoration: underline;
+    }
+
+    .request-card button {
+      background-color: #2980b9; /* Dark Blue */
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: background-color 0.3s;
+      font-size: 14px;
+    }
+
+    .request-card button:hover {
+      background-color: #1c5980; /* Darker Blue on Hover */
+    }
+
+    .status {
+      font-weight: bold;
+      color: #f39c12; /* Orange for Pending */
+    }
+
+    .status.accepted {
+      color: #2ecc71; /* Green for Accepted */
+    }
+
+    .status.rejected {
+      color: #e74c3c; /* Red for Rejected */
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>InternConnect</h1>
+    <nav>
+      <ul>
+        <li><a href="intern home.html">Home</a></li>
+        <li><a href="my_requests.html">My Connections</a></li>
+        <li><a href="intern_chat.html">Chats</a></li>
+        <li><a href="profile.html">Profile</a></li>
+        <a href="/logout">Logout</a>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="requests-container" id="requestsContainer">
+    Loading requests...
+  </div>
+
+  <script>
+    async function loadRequests() {
+      const container = document.getElementById('requestsContainer');
+      container.innerHTML = 'Loading requests...';
+
+      try {
+        const res = await fetch('/api/incoming-requests');
+        if (!res.ok) throw new Error('Failed to fetch requests');
+        const requests = await res.json();
+
+        if (requests.length === 0) {
+          container.textContent = 'No incoming requests.';
+          return;
+        }
+
+        container.innerHTML = ''; // Clear container
+
+        requests.forEach(req => {
+          const { _id, status, student } = req;
+
+          const card = document.createElement('div');
+          card.className = 'request-card';
+          card.id = 'request-' + _id;
+
+          // Build student profile link URL (modify as per your routing)
+         const profileUrl = `intern_stu_profile.html?studentId=${student._id}`;
+
+
+          card.innerHTML = `
+            <div class="details">
+              <p><strong><a href="${profileUrl}" class="profile-link">${student.name}</a></strong></p>
+              <p>${student.department || 'N/A'} - ${student.year || 'N/A'} Year</p>
+              <p>Status: <span class="status ${status.toLowerCase()}">${status}</span></p>
+            </div>
+            <div class="actions">
+              ${status === 'Pending' ? `
+                <button onclick="updateRequestStatus('${_id}', 'Accepted')">Accept</button>
+                <button onclick="updateRequestStatus('${_id}', 'Rejected')">Reject</button>
+              ` : ''}
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        container.textContent = 'Error loading requests.';
+      }
+    }
+
+    async function updateRequestStatus(requestId, status) {
+  try {
+    const res = await fetch(`/api/request/${requestId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }) // only status here
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || 'Failed to update request');
+    }
+
+    // Update UI on success
+    const card = document.getElementById('request-' + requestId);
+    if (card) {
+      const statusSpan = card.querySelector('.status');
+      statusSpan.textContent = status;
+      statusSpan.className = 'status ' + status.toLowerCase();
+
+      const actionsDiv = card.querySelector('.actions');
+      actionsDiv.innerHTML = '';
+    }
+
+  } catch (err) {
+    alert('Failed to update request: ' + err.message);
+  }
+}
+
+
+    // Load requests on page load
+    loadRequests();
+  </script>
+</body>
+</html>

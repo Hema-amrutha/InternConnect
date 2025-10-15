@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>InternConnect - Intern Profile</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(41, 128, 185, 0.2);
+    }
+
+    .profile-pic {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background-color: #bdc3c7;
+      background-size: cover;
+      background-position: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0 0 10px 0;
+      color: #0f1011;
+    }
+
+    .info {
+      margin: 8px 0;
+      font-size: 18px;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #0e0f10;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #2980b9;
+      text-decoration: none;
+      font-weight: bold;
+      border: 2px solid #2980b9;
+      padding: 8px 15px;
+      border-radius: 25px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .back-link:hover {
+      background-color: #2980b9;
+      color: white;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="profileContainer">
+    <div id="loadingMessage">Loading intern profile...</div>
+  </div>
+
+  <script>
+    // Utility: Get query param by name
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    async function loadInternProfile() {
+      const profileContainer = document.getElementById('profileContainer');
+      const internId = getQueryParam('id');
+
+      if (!internId) {
+        profileContainer.innerHTML = '<div class="error">Error: No intern ID provided in URL.</div>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/interns/${internId}`);
+
+        if (response.status === 404) {
+          profileContainer.innerHTML = '<div class="error">Intern not found.</div>';
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Network response was not OK');
+        }
+
+        const intern = await response.json();
+
+        // Build profile HTML
+        const profilePic = intern.profilePic && intern.profilePic.length > 0
+          ? intern.profilePic
+          : 'images/default.jpg';
+
+        profileContainer.innerHTML = `
+          <div class="profile-pic" style="background-image: url('${profilePic}')"></div>
+          <h1>${intern.name}</h1>
+          <div class="info"><span class="label">Email:</span> ${intern.email}</div>
+          <div class="info"><span class="label">Branch:</span> ${intern.branch || 'N/A'}</div>
+          <div class="info"><span class="label">Year:</span> ${intern.year || 'N/A'}</div>
+          <div class="info"><span class="label">Intern Role:</span> ${intern.internship?.internRole || 'N/A'}</div>
+          <div class="info"><span class="label">Company:</span> ${intern.internship?.company || 'N/A'}</div>
+          <a href="homepage.html" class="back-link">&larr; Back to Home</a>
+        `;
+      } catch (error) {
+        console.error('Failed to load intern profile:', error);
+        profileContainer.innerHTML = '<div class="error">Error loading profile. Please try again later.</div>';
+      }
+    }
+
+    loadInternProfile();
+  </script>
+
+</body>
+</html>

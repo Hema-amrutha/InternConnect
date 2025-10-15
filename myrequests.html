@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>InternConnect - My Requests (Student)</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      background-color: #e6ebf1;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Navbar */
+    .navbar {
+      background-color: #2196f3;
+    }
+
+    .navbar-brand,
+    .nav-link {
+      color: white !important;
+      font-weight: 600;
+    }
+
+    .nav-link:hover {
+      color: #cce4fe !important;
+    }
+
+    /* Container */
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+    }
+
+    /* Cards */
+    .request-card {
+      background: white;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      box-shadow: 0 0 8px rgb(0 0 0 / 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .request-info {
+      max-width: 70%;
+    }
+
+    .request-info strong {
+      font-size: 1.1rem;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .request-info p {
+      margin: 2px 0;
+      font-size: 0.9rem;
+    }
+
+    /* Status text */
+    .status {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .status-pending {
+      color: yellowgreen;
+      font-weight: 700;
+    }
+
+    .status-accepted {
+      color: #28a745;
+      font-weight: 700;
+    }
+
+    .status-rejected {
+      color: #dc3545;
+      font-weight: 700;
+    }
+
+    /* Buttons */
+    .btn-action {
+      margin-left: 10px;
+    }
+
+    .btn-chat {
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .btn-chat:hover {
+      background-color: #1976d2;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg px-4">
+    <a class="navbar-brand text-white" href="#">InternConnect</a>
+    <div class="collapse navbar-collapse justify-content-end">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link text-white" href="homepage.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="myrequests.html">My Requests</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="chat.html">Chats</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="profile.html">Profile</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="/logout">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Requests container -->
+  <div class="container" id="requestsContainer">
+    <!-- Requests will be loaded here dynamically -->
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    async function loadMyRequests() {
+      try {
+        const res = await fetch('/api/myrequests');
+        if (!res.ok) throw new Error('Failed to load requests');
+
+        const requests = await res.json();
+
+        const container = document.getElementById('requestsContainer');
+        container.innerHTML = ''; // Clear existing content
+
+        if (requests.length === 0) {
+          container.innerHTML = '<p>No requests sent yet.</p>';
+          return;
+        }
+
+        requests.forEach(req => {
+          const card = document.createElement('div');
+          card.className = 'request-card';
+
+          const statusClass = 'status-' + req.status.toLowerCase();
+
+          card.innerHTML = `
+            <div class="request-info">
+              <strong>${req.receiverName || 'Intern'}</strong>
+              <p>${req.receiverPosition || ''}</p>
+              <p>${req.receiverBranch || ''} - ${req.receiverYear || ''}</p>
+              <p class="status ${statusClass}">Status: ${req.status}</p>
+            </div>
+            ${req.status === 'Accepted' ? `<button class="btn-chat" data-username="${req.receiverUsername}">Chat</button>` : ''}
+          `;
+
+          container.appendChild(card);
+        });
+
+        // Add event listeners to chat buttons
+        document.querySelectorAll('.btn-chat').forEach(button => {
+          button.addEventListener('click', () => {
+            const username = button.getAttribute('data-username');
+            window.location.href = `chat.html?user=${username}`;
+          });
+        });
+
+      } catch (error) {
+        console.error(error);
+        document.getElementById('requestsContainer').innerHTML = '<p>Error loading requests.</p>';
+      }
+    }
+
+    window.onload = loadMyRequests;
+  </script>
+
+</body>
+</html>

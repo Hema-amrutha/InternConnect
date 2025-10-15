@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Student Profile</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .profile {
+      background: #fff;
+      padding: 25px;
+      max-width: 600px;
+      margin: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    p {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile" id="studentProfile">Loading profile...</div>
+
+  <script>
+    async function loadStudentProfile() {
+      const params = new URLSearchParams(window.location.search);
+      const studentId = params.get('studentId');
+
+      if (!studentId) {
+        document.getElementById('studentProfile').innerText = 'No student selected.';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/student/${studentId}`);
+        if (!res.ok) throw new Error('Student not found');
+
+        const student = await res.json();
+
+        document.getElementById('studentProfile').innerHTML = `
+          <h2>${student.name}</h2>
+          <p><strong>Email:</strong> ${student.email}</p>
+          <p><strong>Department:</strong> ${student.department}</p>
+          <p><strong>Year:</strong> ${student.year}</p>
+          <p><strong>Bio:</strong> ${student.bio || 'N/A'}</p>
+        `;
+      } catch (err) {
+        document.getElementById('studentProfile').innerText = 'Error loading profile: ' + err.message;
+      }
+    }
+
+    loadStudentProfile();
+  </script>
+</body>
+</html>
