@@ -251,7 +251,87 @@ async function loadInterns() {
     const container = document.getElementById('internList');
     container.innerHTML = '';
 
+ 
     renderInterns(interns, requestMap);
+
+    interns.forEach(intern => {
+      const profilePic = intern.profilePic?.length > 0 ? intern.profilePic : 'images/default.jpg';
+      const role = intern.internship?.internRole || 'Role not specified';
+      const company = intern.internship?.company || 'Company not specified';
+
+      const status = requestMap.get(intern._id) || null;
+
+    let buttonHTML = '';
+    if (status === 'Accepted') {
+      buttonHTML = `
+      <button class="chat-btn" 
+        onclick="openChatPage('${intern._id}', '${intern.name}')">
+        Chat
+      </button>`;
+    } else if (status === 'Pending') {
+        buttonHTML = `<button class="request-btn" disabled>Requested</button>`;
+      } else {
+      buttonHTML = `<button class="request-btn">Connect</button>`;
+    }
+
+      const card = document.createElement('div');
+      card.classList.add('student-card');
+      card.style.cursor = 'pointer';
+      card.innerHTML = `
+        <div class="student-card-content" style="justify-content: space-between; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+            <div class="profile-pic" style="background-image: url('${profilePic}')"></div>
+            <div>
+              <div class="intern-name" style="font-weight: bold; font-size: 18px; color: #2980b9;">${intern.name}</div>
+              <div style="font-size: 16px; color: #2c3e50;">${role}</div>
+              <div style="font-size: 16px; color: #2c3e50;">${company}</div>
+            </div>
+          </div>
+          ${buttonHTML}
+        </div>
+      `;
+
+      // Click on card opens profile
+      card.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('request-btn') && !e.target.classList.contains('chat-btn')) {
+          window.location.href = `intern_profile.html?id=${intern._id}`;
+        }
+      });
+
+      // Click on Connect
+      const requestBtn = card.querySelector('.request-btn');
+      if (requestBtn && !requestBtn.disabled) {
+        requestBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          try {
+            const res = await fetch('/api/requests', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ receiverId: intern._id })
+            });
+            if (!res.ok) throw new Error('Failed to send request');
+            alert('Request sent!');
+            requestBtn.disabled = true;
+            requestBtn.textContent = 'Requested';
+          } catch (err) {
+            alert('Error sending request');
+            console.error(err);
+          }
+        });
+      }
+
+      // Click on Chat
+      const chatBtn = card.querySelector('.chat-btn');
+      if (chatBtn) {
+        chatBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          window.location.href = `chat.html?id=${intern._id}&name=${intern.name}`;
+        });
+      }
+
+
+      container.appendChild(card);
+    });
 
   } catch (error) {
     console.error('Error loading interns:', error);
