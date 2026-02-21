@@ -492,7 +492,19 @@ app.get('/logout', (req, res) => {
     res.redirect('/'); // This loads login.html from root
   });
 });
+app.get('/api/students', async (req, res) => {
+  try {
+    const students = await db.collection('users')
+      .find({ role: 'student' })
+      .project({ password: 0 })
+      .toArray();
 
+    res.json(students);
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    res.status(500).send('Internal server error');
+  }
+});
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'login.html'));
 });

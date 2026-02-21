@@ -219,8 +219,8 @@
  
   <!-- Search and Filter -->
   <div class="search-filter">
-    <input class="search-bar" type="text" placeholder="Search for senior students...">
-    <select class="filter-dropdown">
+      <input id="searchInput" class="search-bar" type="text" placeholder="Search for senior students...">    
+      <select class="filter-dropdown" id="branchFilter">
       <option value="">All Branches</option>
       <option value="CSE">CSE</option>
       <option value="ECE">ECE</option>
@@ -235,12 +235,13 @@
 </div>
 
 <script>
+let allInterns = [];
 async function loadInterns() {
   try {
     const res = await fetch('/api/interns');
     if (!res.ok) throw new Error('Failed to fetch interns');
     const interns = await res.json();
-
+    allInterns = interns;
     // Get requests sent by the logged-in student
     const myRequests = await fetch('/api/myrequests');
     if (!myRequests.ok) throw new Error('Failed to fetch requests');
@@ -249,6 +250,9 @@ async function loadInterns() {
 
     const container = document.getElementById('internList');
     container.innerHTML = '';
+
+ 
+    renderInterns(interns, requestMap);
 
     interns.forEach(intern => {
       const profilePic = intern.profilePic?.length > 0 ? intern.profilePic : 'images/default.jpg';
@@ -334,8 +338,46 @@ async function loadInterns() {
     document.getElementById('internList').textContent = 'Failed to load interns.';
   }
 }
+function renderInterns(interns, requestMap) {
+  const container = document.getElementById('internList');
+  container.innerHTML = '';
 
-loadInterns();
+  interns.forEach(intern => {
+    const profilePic = intern.profilePic?.length > 0 ? intern.profilePic : 'images/default.jpg';
+    const branch = intern.branch || 'Branch not specified';
+    const year = intern.year || 'Year not specified';
+    const status = requestMap.get(intern._id.toString()) || null;
+
+    let buttonHTML = '';
+    if (status === 'Accepted') {
+      buttonHTML = `<button class="chat-btn">Chat</button>`;
+    } else if (status === 'Pending') {
+      buttonHTML = `<button class="request-btn" disabled>Requested</button>`;
+    } else {
+      buttonHTML = `<button class="request-btn">Connect</button>`;
+    }
+
+    const card = document.createElement('div');
+    card.classList.add('student-card');
+    card.style.cursor = 'pointer';
+
+    card.innerHTML = `
+      <div class="student-card-content" style="justify-content: space-between; width: 100%;">
+        <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+          <div class="profile-pic" style="background-image: url('${profilePic}')"></div>
+          <div>
+            <div style="font-weight: bold; font-size: 18px; color: #2980b9;">${intern.name}</div>
+            <div>Branch: ${branch}</div>
+            <div>Year: ${year}</div>
+          </div>
+        </div>
+        ${buttonHTML}
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
 </script>
 
 <script>
@@ -357,6 +399,30 @@ loadInterns();
 
 
   loadInterns();
+  function applyFilters() {
+
+    const searchValue = document.getElementById('searchInput').value.toLowerCase();
+    const selectedBranch = document.getElementById('branchFilter').value.toLowerCase();
+
+    let filtered = allInterns.filter(intern => {
+
+      const matchesName = intern.name?.toLowerCase().includes(searchValue);
+      const matchesBranch = selectedBranch === "" || intern.branch?.toLowerCase() === selectedBranch;
+
+      return matchesName && matchesBranch;
+    });
+
+    fetch('/api/myrequests')
+      .then(res => res.json())
+      .then(requestData => {
+        const requestMap = new Map(requestData.map(r => [r.receiverId, r.status]));
+        renderInterns(filtered, requestMap);
+      });
+  }
+
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.getElementById('branchFilter').addEventListener('change', applyFilters);
+
 </script>
 <!-- Footer -->
 <footer>
