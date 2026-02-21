@@ -39,7 +39,7 @@
 
     .logo-subtext {
       font-size: 14px;
-      color: #95a5a6; /* Light Gray */
+      color: #a69a95; /* Light Gray */
       margin-top: 5px;
     }
 
@@ -229,7 +229,7 @@
 <script>
 async function loadInterns() {
   try {
-    const res = await fetch('/api/interns');
+    const res = await fetch('/api/students');
     if (!res.ok) throw new Error('Failed to fetch interns');
     const interns = await res.json();
 
@@ -244,10 +244,9 @@ async function loadInterns() {
 
     interns.forEach(intern => {
       const profilePic = intern.profilePic?.length > 0 ? intern.profilePic : 'images/default.jpg';
-      const role = intern.internship?.internRole || 'Role not specified';
-      const company = intern.internship?.company || 'Company not specified';
-
-      const status = requestMap.get(intern._id) || null;
+      const branch = intern.branch || 'Branch not specified';
+      const year = intern.year || 'Year not specified';
+      const status = requestMap.get(intern._id.toString()) || null;
 
       let buttonHTML = '';
       if (status === 'Accepted') {
@@ -267,8 +266,8 @@ async function loadInterns() {
             <div class="profile-pic" style="background-image: url('${profilePic}')"></div>
             <div>
               <div class="intern-name" style="font-weight: bold; font-size: 18px; color: #2980b9;">${intern.name}</div>
-              <div style="font-size: 16px; color: #2c3e50;">${role}</div>
-              <div style="font-size: 16px; color: #2c3e50;">${company}</div>
+              <div style="font-size: 16px; color: #2c3e50;">Branch: ${branch}</div>
+              <div style="font-size: 16px; color: #2c3e50;">Year: ${year}</div>
             </div>
           </div>
           ${buttonHTML}
@@ -334,7 +333,7 @@ loadInterns();
   })
   .then(user => {
     const banner = document.getElementById('welcomeBanner');
-    banner.textContent = `👋 Welcome, ${user.name} – Ready to connect with senior interns?`;
+    banner.textContent = `👋 Welcome, ${user.name} – Ready to Guide your Juniors?`;
   })
   .catch(err => {
     console.error(err);
@@ -346,11 +345,10 @@ loadInterns();
   loadInterns();
 </script>
 
-  <!-- Footer -->
+<!-- Footer -->
   <footer>
     InternConnect &copy; 2025 | Built for student networking and internship guidance.
   </footer>
-
 
 </body>
 </html>
