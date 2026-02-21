@@ -508,7 +508,19 @@ app.post('/api/accept-request', async (req, res) => {
 
   res.send({ success: true });
 });
+app.get('/api/students', async (req, res) => {
+  try {
+    const students = await db.collection('users')
+      .find({ role: 'student' })
+      .project({ password: 0 })
+      .toArray();
 
+    res.json(students);
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    res.status(500).send('Internal server error');
+  }
+});
 // Start the server after DB connects
 connectDB().then(() => {
   server.listen(PORT, () => {

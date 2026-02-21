@@ -257,14 +257,18 @@ async function loadInterns() {
 
       const status = requestMap.get(intern._id) || null;
 
-      let buttonHTML = '';
-      if (status === 'Accepted') {
-        buttonHTML = `<button class="chat-btn">Chat</button>`;
-      } else if (status === 'Pending') {
+    let buttonHTML = '';
+    if (status === 'Accepted') {
+      buttonHTML = `
+      <button class="chat-btn" 
+        onclick="openChatPage('${intern._id}', '${intern.name}')">
+        Chat
+      </button>`;
+    } else if (status === 'Pending') {
         buttonHTML = `<button class="request-btn" disabled>Requested</button>`;
       } else {
-        buttonHTML = `<button class="request-btn">Connect</button>`;
-      }
+      buttonHTML = `<button class="request-btn">Connect</button>`;
+    }
 
       const card = document.createElement('div');
       card.classList.add('student-card');
@@ -317,7 +321,7 @@ async function loadInterns() {
       if (chatBtn) {
         chatBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          window.location.href = `chatpage.html?id=${intern._id}`;
+          window.location.href = `chat.html?id=${intern._id}&name=${intern.name}`;
         });
       }
 

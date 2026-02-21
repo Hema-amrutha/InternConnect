@@ -209,9 +209,15 @@
       </div>
     </div>
   </div>
-
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
+   function getQueryParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    id: params.get("id"),
+    name: params.get("name")
+  };
+}
   const socket = io("http://localhost:3000"); // adjust for production
   const studentId = localStorage.getItem("loggedInStudentId");
   let currentChat = '';
@@ -243,6 +249,7 @@
       document.getElementById('intern-list').innerHTML = '<li>Error loading interns.</li>';
     }
   }
+  
 
   function openChat(intern) {
   currentChat = intern._id;
@@ -301,8 +308,17 @@
   });
 
   window.onload = () => {
-    loadConnectedInterns();
-    // Removed: chatBox.scrollTop = chatBox.scrollHeight;
-  };
+  loadConnectedInterns();
+
+  const internData = getQueryParams();
+
+  if (internData.id && internData.name) {
+    
+    openChat({
+      _id: internData.id,
+      name: internData.name
+    });
+  }
+};
 </script>
 
