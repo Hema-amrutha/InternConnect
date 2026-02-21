@@ -323,7 +323,6 @@ async function loadInterns() {
 
 loadInterns();
 </script>
-
 <script>
   // Welcome message
   fetch('/api/profile')
@@ -340,17 +339,11 @@ loadInterns();
     document.getElementById('welcomeBanner').textContent = "Welcome – Please log in.";
     window.location.href = '/'; // <--- This line redirects to login if not logged in
   });
-
-
   loadInterns();
-  
 </script>
-
   <!-- Footer -->
   <footer>
     InternConnect &copy; 2025 | Built for student networking and internship guidance.
   </footer>
-
-
 </body>
 </html>

@@ -415,12 +415,12 @@ io.on('connection', (socket) => {
     const roomId = [senderId, receiverId].sort().join('-');
 
     // Emit to the other user in the room
-    socket.to(roomId).emit('receiveMessage', {
-      senderId,
-      receiverId,
-      message: content,
-      timestamp: new Date()
-    });
+    io.to(roomId).emit('receiveMessage', {
+  senderId,
+  receiverId,
+  message: content,
+  timestamp: new Date()
+});
 
     // Store the message in MongoDB
     try {
@@ -462,9 +462,9 @@ app.get('/api/messages/:senderId/:receiverId', async (req, res) => {
 
 // API: Save a new message
 app.post('/api/messages', async (req, res) => {
-  const { senderId, receiverId, content } = req.body;
+  const { senderId, receiverId, message } = req.body;
 
-  if (!senderId || !receiverId || !content) {
+  if (!senderId || !receiverId || !message) {
     return res.status(400).send('Missing fields');
   }
 
@@ -472,7 +472,7 @@ app.post('/api/messages', async (req, res) => {
     const result = await db.collection('messages').insertOne({
       senderId,
       receiverId,
-      content,
+      message,
       timestamp: new Date()
     });
 
