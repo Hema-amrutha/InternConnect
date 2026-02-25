@@ -134,57 +134,83 @@
   </div>
 
   <!-- JavaScript -->
-  <script>
-    async function loadMyRequests() {
-      try {
-        const res = await fetch('/api/myrequests');
-        if (!res.ok) throw new Error('Failed to load requests');
+ <script>
+  // 1️⃣ Function to load requests sent to the student
+  async function loadMyRequests() {
+    try {
+      // Fetch requests that are sent to this student
+      const res = await fetch('/api/receivedrequests'); 
+      if (!res.ok) throw new Error('Failed to load requests');
 
-        const requests = await res.json();
+      const requests = await res.json();
 
-        const container = document.getElementById('requestsContainer');
-        container.innerHTML = ''; // Clear existing content
+      const container = document.getElementById('requestsContainer');
+      container.innerHTML = ''; // Clear any previous content
 
-        if (requests.length === 0) {
-          container.innerHTML = '<p>No requests sent yet.</p>';
-          return;
-        }
-
-        requests.forEach(req => {
-          const card = document.createElement('div');
-          card.className = 'request-card';
-
-          const statusClass = 'status-' + req.status.toLowerCase();
-
-          card.innerHTML = `
-            <div class="request-info">
-              <strong>${req.receiverName || 'Intern'}</strong>
-              <p>${req.receiverPosition || ''}</p>
-              <p>${req.receiverBranch || ''} - ${req.receiverYear || ''}</p>
-              <p class="status ${statusClass}">Status: ${req.status}</p>
-            </div>
-            ${req.status === 'Accepted' ? `<button class="btn-chat" data-username="${req.receiverUsername}">Chat</button>` : ''}
-          `;
-
-          container.appendChild(card);
-        });
-
-        // Add event listeners to chat buttons
-        document.querySelectorAll('.btn-chat').forEach(button => {
-          button.addEventListener('click', () => {
-            const username = button.getAttribute('data-username');
-            window.location.href = `chat.html?user=${username}`;
-          });
-        });
-
-      } catch (error) {
-        console.error(error);
-        document.getElementById('requestsContainer').innerHTML = '<p>Error loading requests.</p>';
+      if (requests.length === 0) {
+        container.innerHTML = '<p>No requests received yet.</p>';
+        return;
       }
+
+      // 2️⃣ Create cards for each request
+      <!-- Inside your JS for each card -->
+requests.forEach(req => {
+  const card = document.createElement('div');
+  card.className = 'request-card';
+
+  // Determine status class for coloring
+  let statusClass = '';
+  if (req.status === 'Pending') statusClass = 'status-pending';
+  else if (req.status === 'Accepted') statusClass = 'status-accepted';
+  else if (req.status === 'Rejected') statusClass = 'status-rejected';
+
+  card.innerHTML = `
+    <div class="request-info">
+      <strong>${req.requesterName || 'Student'}</strong>
+
+<p class="role-company">
+  ${req.role ? req.role : ''}
+  ${req.company ? ' | ' + req.company : ''}
+</p>
+      <p>Status: <span class="status ${statusClass}">${req.status}</span></p>
+    </div>
+
+    ${req.status === 'Pending' ? `
+      <div>
+        <button class="btn btn-primary btn-action" onclick="updateRequest('${req._id}', 'Accepted')">Accept</button>
+        <button class="btn btn-secondary btn-action" onclick="updateRequest('${req._id}', 'Rejected')">Reject</button>
+      </div>
+    ` : ''}
+  `;
+
+  container.appendChild(card);
+});
+
+    } catch (error) {
+      console.error(error);
+      document.getElementById('requestsContainer').innerHTML = '<p>Error loading requests.</p>';
     }
+  }
 
-    window.onload = loadMyRequests;
-  </script>
+  // 3️⃣ Function to update the request status
+  async function updateRequest(id, status) {
+  try {
+    await fetch('/api/requests/update', {  // ✅ Updated URL
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ requestId: id, status })
+    });
 
+    loadMyRequests(); // reload the list after updating
+  } catch (err) {
+    console.error('Failed to update request', err);
+  }
+}
+
+  // 4️⃣ Load requests when the page opens
+  window.onload = loadMyRequests;
+</script>
 </body>
 </html>

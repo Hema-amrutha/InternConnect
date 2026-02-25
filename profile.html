@@ -96,9 +96,9 @@
       <div class="logo-subtext">Learn. Connect. Succeed.</div>
     </div>
     <div>
-      <a href="intern home.html">Home</a>
-      <a href="my_requests.html">My Requests</a>
-      <a href="intern_chat.html">Chats</a>
+      <a href="#" id="homeLink">Home</a>
+      <a href="#" id="requestLink">My Requests</a>
+      <a href="#" id="chatLink">Chats</a>
       <a href="profile.html">Profile</a>
       <a href="/logout">Logout</a>
     </div>
@@ -153,6 +153,43 @@ document.getElementById('internship').textContent = internship || 'N/A';
       .catch(() => {
         window.location.href = '/login.html';
       });
+      
+async function setNavigationByRole() {
+  try {
+    const res = await fetch('/api/profile');
+    if (!res.ok) {
+      window.location.href = '/login.html';
+      return;
+    }
+
+    const user = await res.json();
+
+    const homeLink = document.getElementById('homeLink');
+    const chatLink = document.getElementById('chatLink');
+    const requestLink = document.getElementById('requestLink');
+
+    if (user.role === 'intern') {
+      // Intern navigation
+      homeLink.href = 'intern home.html';
+      chatLink.href = 'intern_chat.html';
+      requestLink.href = 'my_requests.html';
+    } else {
+      // Student navigation
+      homeLink.href = 'homepage.html';
+      chatLink.href = 'chat.html';
+      requestLink.href = 'myrequests.html';
+    }
+
+  } catch (err) {
+    console.error('Navigation setup failed:', err);
+    window.location.href = '/login.html';
+  }
+}
+
+// Run when page loads
+document.addEventListener('DOMContentLoaded', setNavigationByRole);
+setHomeRedirect();
+
   </script>
   
 

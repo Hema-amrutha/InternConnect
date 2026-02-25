@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -207,141 +208,225 @@
  <div class="welcome-banner" id="welcomeBanner">Loading your info...</div>
 
 
-  <!-- Search and Filter -->
   <div class="search-filter">
-    <input class="search-bar" type="text" placeholder="Search for senior students...">
-    <select class="filter-dropdown">
-      <option value="">All Branches</option>
-      <option value="CSE">CSE</option>
-      <option value="ECE">ECE</option>
-      <option value="IT">IT</option>
-      <option value="EEE">EEE</option>
-    </select>
-  </div>
+  <input 
+    id="searchInput"
+    class="search-bar" 
+    type="text" 
+    placeholder="Search for senior students..."
+  >
 
-  <!-- List of Senior Students -->
+  <select 
+    id="branchFilter"
+    class="filter-dropdown"
+  >
+    <option value="">All Branches</option>
+    <option value="CSE">CSE</option>
+    <option value="ECE">ECE</option>
+    <option value="IT">IT</option>
+    <option value="EEE">EEE</option>
+  </select>
+</div>
+
 
   <!-- List of Senior Students -->
 <div class="student-list" id="internList">
   <!-- Intern cards will be dynamically inserted here -->
 </div>
-
 <script>
+let allStudents = [];
+let requestMap = new Map();
+
+/* =========================
+   Run only after page loads
+========================= */
+document.addEventListener('DOMContentLoaded', () => {
+  attachFilterEvents();
+  loadInterns();
+  loadProfile();
+});
+
+/* =========================
+   Load Students
+========================= */
 async function loadInterns() {
   try {
     const res = await fetch('/api/students');
-    if (!res.ok) throw new Error('Failed to fetch interns');
-    const interns = await res.json();
+    if (!res.ok) throw new Error('Failed to fetch students');
+    const students = await res.json();
 
-    // Get requests sent by the logged-in student
+    allStudents = students;
+
+    // Fetch request status
     const myRequests = await fetch('/api/myrequests');
     if (!myRequests.ok) throw new Error('Failed to fetch requests');
     const requestData = await myRequests.json();
-    const requestMap = new Map(requestData.map(r => [r.receiverId, r.status]));
 
-    const container = document.getElementById('internList');
-    container.innerHTML = '';
+    requestMap = new Map(
+      requestData.map(r => [r.receiverId.toString(), r.status])
+    );
 
-    interns.forEach(intern => {
-      const profilePic = intern.profilePic?.length > 0 ? intern.profilePic : 'images/default.jpg';
-      const branch = intern.branch || 'Branch not specified';
-      const year = intern.year || 'Year not specified';
-      const status = requestMap.get(intern._id.toString()) || null;
-
-      let buttonHTML = '';
-      if (status === 'Accepted') {
-        buttonHTML = `<button class="chat-btn">Chat</button>`;
-      } else if (status === 'Pending') {
-        buttonHTML = `<button class="request-btn" disabled>Requested</button>`;
-      } else {
-        buttonHTML = `<button class="request-btn">Connect</button>`;
-      }
-
-      const card = document.createElement('div');
-      card.classList.add('student-card');
-      card.style.cursor = 'pointer';
-      card.innerHTML = `
-        <div class="student-card-content" style="justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
-            <div class="profile-pic" style="background-image: url('${profilePic}')"></div>
-            <div>
-              <div class="intern-name" style="font-weight: bold; font-size: 18px; color: #2980b9;">${intern.name}</div>
-              <div style="font-size: 16px; color: #2c3e50;">Branch: ${branch}</div>
-              <div style="font-size: 16px; color: #2c3e50;">Year: ${year}</div>
-            </div>
-          </div>
-          ${buttonHTML}
-        </div>
-      `;
-
-      // Click on card opens profile
-      card.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('request-btn') && !e.target.classList.contains('chat-btn')) {
-          window.location.href = `intern_profile.html?id=${intern._id}`;
-        }
-      });
-
-      // Click on Connect
-      const requestBtn = card.querySelector('.request-btn');
-      if (requestBtn && !requestBtn.disabled) {
-        requestBtn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          try {
-            const res = await fetch('/api/requests', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ receiverId: intern._id })
-            });
-            if (!res.ok) throw new Error('Failed to send request');
-            alert('Request sent!');
-            requestBtn.disabled = true;
-            requestBtn.textContent = 'Requested';
-          } catch (err) {
-            alert('Error sending request');
-            console.error(err);
-          }
-        });
-      }
-
-      // Click on Chat
-      const chatBtn = card.querySelector('.chat-btn');
-      if (chatBtn) {
-        chatBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          window.location.href = `chatpage.html?id=${intern._id}`;
-        });
-      }
-
-      container.appendChild(card);
-    });
+    displayStudents(allStudents);
 
   } catch (error) {
-    console.error('Error loading interns:', error);
-    document.getElementById('internList').textContent = 'Failed to load interns.';
+    console.error('Error loading students:', error);
+    document.getElementById('internList').textContent =
+      'Failed to load students.';
   }
 }
 
-loadInterns();
-</script>
-<script>
-  // Welcome message
-  fetch('/api/profile')
-  .then(response => {
-    if (!response.ok) throw new Error('Not logged in');
-    return response.json();
-  })
-  .then(user => {
-    const banner = document.getElementById('welcomeBanner');
-    banner.textContent = `👋 Welcome, ${user.name} – Ready to Guide your Juniors?`;
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById('welcomeBanner').textContent = "Welcome – Please log in.";
-    window.location.href = '/'; // <--- This line redirects to login if not logged in
-  });
-  loadInterns();
-</script>
+/* =========================
+   Display Students
+========================= */
+function displayStudents(students) {
+  const container = document.getElementById('internList');
+  container.innerHTML = '';
 
+  if (!students || students.length === 0) {
+    container.innerHTML = '<p>No students found.</p>';
+    return;
+  }
+
+  students.forEach(intern => {
+    const profilePic = intern.profilePic && intern.profilePic.length > 0
+      ? intern.profilePic
+      : 'images/default.jpg';
+
+    const branch = intern.branch || 'Branch not specified';
+    const year = intern.year || 'Year not specified';
+    const status = requestMap.get(intern._id.toString()) || null;
+
+    let buttonHTML = '';
+    if (status === 'Accepted') {
+      buttonHTML = `<button class="chat-btn">Chat</button>`;
+    } else if (status === 'Pending') {
+      buttonHTML = `<button class="request-btn" disabled>Requested</button>`;
+    } else {
+      buttonHTML = `<button class="request-btn">Connect</button>`;
+    }
+
+    const card = document.createElement('div');
+    card.classList.add('student-card');
+    card.style.cursor = 'pointer';
+
+    card.innerHTML = `
+      <div class="student-card-content" style="justify-content: space-between; width: 100%;">
+        <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+          <div class="profile-pic" style="background-image: url('${profilePic}')"></div>
+          <div>
+            <div class="intern-name" style="font-weight: bold; font-size: 18px; color: #2980b9;">
+              ${intern.name}
+            </div>
+            <div>Branch: ${branch}</div>
+            <div>Year: ${year}</div>
+          </div>
+        </div>
+        ${buttonHTML}
+      </div>
+    `;
+
+    // Open profile
+    card.addEventListener('click', (e) => {
+    if (!e.target.classList.contains('request-btn') &&
+      !e.target.classList.contains('chat-btn')) {
+    window.location.href = `student_profile.html?id=${intern._id}`;
+  }
+});
+
+    // Connect button
+    const requestBtn = card.querySelector('.request-btn');
+    if (requestBtn && !requestBtn.disabled) {
+      requestBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        try {
+          const res = await fetch('/api/requests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ receiverId: intern._id })
+          });
+
+          if (!res.ok) throw new Error('Failed to send request');
+
+          requestBtn.disabled = true;
+          requestBtn.textContent = 'Requested';
+        } catch (err) {
+          console.error(err);
+          alert('Error sending request');
+        }
+      });
+    }
+
+    // Chat button
+    const chatBtn = card.querySelector('.chat-btn');
+    if (chatBtn) {
+      chatBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `chatpage.html?id=${intern._id}`;
+      });
+    }
+
+    container.appendChild(card);
+  });
+}
+
+/* =========================
+   Filtering Logic
+========================= */
+function applyFilters() {
+  const searchInput = document.getElementById('searchInput');
+  const branchFilter = document.getElementById('branchFilter');
+
+  const searchValue = searchInput.value.toLowerCase().trim();
+  const selectedBranch = branchFilter.value.toLowerCase();
+
+  const filtered = allStudents.filter(student => {
+    const name = student.name ? student.name.toLowerCase() : '';
+    const branch = student.branch ? student.branch.toLowerCase() : '';
+
+    const matchesName = name.includes(searchValue);
+    const matchesBranch = selectedBranch === '' || branch === selectedBranch;
+
+    return matchesName && matchesBranch;
+  });
+
+  displayStudents(filtered);
+}
+
+/* Attach filter events safely */
+function attachFilterEvents() {
+  const searchInput = document.getElementById('searchInput');
+  const branchFilter = document.getElementById('branchFilter');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+
+  if (branchFilter) {
+    branchFilter.addEventListener('change', applyFilters);
+  }
+}
+
+/* =========================
+   Welcome Banner
+========================= */
+function loadProfile() {
+  fetch('/api/profile')
+    .then(response => {
+      if (!response.ok) throw new Error('Not logged in');
+      return response.json();
+    })
+    .then(user => {
+      document.getElementById('welcomeBanner').textContent =
+        `👋 Welcome, ${user.name} – Ready to Guide your Juniors?`;
+    })
+    .catch(err => {
+      console.error(err);
+      document.getElementById('welcomeBanner').textContent =
+        "Welcome – Please log in.";
+      window.location.href = '/';
+    });
+}
+</script>
   <!-- Footer -->
   <footer>
     InternConnect &copy; 2025 | Built for student networking and internship guidance.

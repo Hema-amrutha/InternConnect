@@ -175,6 +175,22 @@
       border: 1px solid #ddd;
       max-width: 50%;
     }
+    .student-item {
+  padding: 10px;
+  border-radius: 8px;
+  margin: 5px 0;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.student-item:hover {
+  background-color: #e0e0e0;
+}
+
+.student-item.active-chat {
+  background-color: #0d6efd;
+  color: white;
+}
   </style>
 </head>
 <body>
@@ -187,7 +203,7 @@
         <li><a href="myrequests.html">My Requests</a></li>
         <li><a href="chat.html">Chats</a></li>
         <li><a href="profile.html">Profile</a></li>
-        <li><a href="#">Logout</a></li>
+        <a href="/logout">Logout</a>
       </ul>
     </nav>
   </header>
@@ -211,109 +227,165 @@
   </div>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-   function getQueryParams() {
+const socket = io("http://localhost:3000");
+
+let studentId = '';
+let currentChat = '';
+let currentInternName = '';
+
+// Get logged-in user from session
+async function getLoggedInUser() {
+  try {
+    const res = await fetch('/api/profile');
+    if (!res.ok) {
+      window.location.href = '/';
+      return;
+    }
+    const user = await res.json();
+    studentId = user._id;
+  } catch (err) {
+    console.error('Profile error:', err);
+  }
+}
+
+// Load accepted interns
+async function loadConnectedInterns() {
+  try {
+    const res = await fetch('/api/myrequests');
+    if (!res.ok) throw new Error('Failed to load requests');
+
+    const requests = await res.json();
+
+    const accepted = requests.filter(r => r.status === 'Accepted');
+
+    const list = document.getElementById('intern-list');
+    list.innerHTML = '';
+
+    if (accepted.length === 0) {
+      list.innerHTML = '<li>No accepted connections yet.</li>';
+      return;
+    }
+
+    accepted.forEach(req => {
+      const li = document.createElement('li');
+      li.textContent = req.receiverName;
+      li.classList.add('student-item');
+      li.style.cursor = 'pointer';
+
+      li.onclick = () => openChat({
+  _id: req.receiverId,
+  name: req.receiverName
+}, li);
+
+      list.appendChild(li);
+    });
+
+  } catch (err) {
+    console.error('Error loading interns:', err);
+    document.getElementById('intern-list').innerHTML =
+      '<li>Error loading interns.</li>';
+  }
+}
+
+// Open chat with selected intern
+function openChat(intern, element) {
+
+  // Remove old highlight
+  document.querySelectorAll('.student-item')
+    .forEach(item => item.classList.remove('active-chat'));
+
+  // Highlight selected
+  if (element) {
+    element.classList.add('active-chat');
+  }
+
+  currentChat = intern._id;
+  currentInternName = intern.name;
+
+  document.getElementById('chat-title').innerText =
+    `Chat with ${intern.name}`;
+
+  const chatBox = document.getElementById('chat-box');
+  chatBox.innerHTML = '';
+
+  socket.emit('joinRoom', {
+    senderId: studentId,
+    receiverId: currentChat
+  });
+
+  fetch(`/api/messages/${studentId}/${currentChat}`)
+    .then(res => res.json())
+    .then(messages => {
+      messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className =
+          msg.senderId === studentId
+            ? 'message sent'
+            : 'message received';
+
+        div.innerHTML = msg.message;
+        chatBox.appendChild(div);
+      });
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
+
+// Send message
+function sendMessage() {
+  const input = document.getElementById('message-input');
+  const message = input.value.trim();
+
+  if (message === '' || currentChat === '') return;
+
+  socket.emit('sendMessage', {
+    senderId: studentId,
+    receiverId: currentChat,
+    message
+  });
+  input.value = '';
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Receive message
+socket.on('receiveMessage', (data) => {
+
+  // Only show if this message belongs to current open chat
+  if (
+    data.senderId !== currentChat &&
+    data.receiverId !== currentChat
+  ) return;
+
+  const chatBox = document.getElementById('chat-box');
+
+  const div = document.createElement('div');
+
+  div.className =
+    data.senderId === studentId
+      ? 'message sent'
+      : 'message received';
+
+  div.innerHTML =data.message;
+
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+});
+function getQueryParams() {
   const params = new URLSearchParams(window.location.search);
   return {
     id: params.get("id"),
     name: params.get("name")
   };
 }
-  const socket = io("http://localhost:3000"); // adjust for production
-  const studentId = localStorage.getItem("loggedInStudentId");
-  let currentChat = '';
-
-  async function loadConnectedInterns() {
-    try {
-      const res = await fetch('/api/acceptedInterns');
-      if (!res.ok) throw new Error('Failed to load connected interns');
-
-      const interns = await res.json();
-      const list = document.getElementById('intern-list');
-      list.innerHTML = '';
-
-      if (interns.length === 0) {
-        list.innerHTML = '<li>No accepted connections yet.</li>';
-        return;
-      }
-
-      interns.forEach(intern => {
-        const li = document.createElement('li');
-        li.textContent = intern.name;
-        li.onclick = () => openChat(intern);
-        li.style.cursor = 'pointer';
-        li.classList.add('student-item');
-        list.appendChild(li);
-      });
-    } catch (err) {
-      console.error('Error:', err);
-      document.getElementById('intern-list').innerHTML = '<li>Error loading interns.</li>';
-    }
-  }
-  
-
-  function openChat(intern) {
-  currentChat = intern._id;
-  document.getElementById('chat-title').innerText = `Chat with ${intern.name}`;
-  document.getElementById('chat-box').innerHTML = '';
-  document.title = `Chat with ${intern.name}`;
-
-  const roomId = [studentId, currentChat].sort().join('-');
-  socket.emit('joinRoom', { senderId: studentId, receiverId: currentChat });  // Good now!
-
-  fetch(`/api/messages/${studentId}/${currentChat}`)
-    .then(res => res.json())
-    .then(messages => {
-      const chatBox = document.getElementById('chat-box');
-      messages.forEach(msg => {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = msg.senderId === studentId ? 'message sent' : 'message received';
-        msgDiv.innerHTML = `<strong>${msg.senderId === studentId ? 'You' : intern.name}:</strong> ${msg.message}`;
-        chatBox.appendChild(msgDiv);
-      });
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
-}
-
-
-  function sendMessage() {
-    const input = document.getElementById('message-input');
-    const message = input.value.trim();
-    if (message === '' || currentChat === '') return;
-
-    const roomId = [studentId, currentChat].sort().join('-');
-    socket.emit('sendMessage', {
-      roomId,
-      senderId: studentId,
-      receiverId: currentChat,
-      message
-    });
-
-    const chatBox = document.getElementById('chat-box');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message sent';
-    msgDiv.innerHTML = `<strong>You:</strong> ${message}`;
-    chatBox.appendChild(msgDiv);
-    input.value = '';
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  socket.on('receiveMessage', (data) => {
-    if (data.senderId !== currentChat) return;
-    const chatBox = document.getElementById('chat-box');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message received';
-    msgDiv.innerHTML = `<strong>Intern:</strong> ${data.message}`;
-    chatBox.appendChild(msgDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  });
-
-  window.onload = () => {
-  loadConnectedInterns();
+// Page load
+window.onload = async () => {
+  await getLoggedInUser();
+  await loadConnectedInterns();
 
   const internData = getQueryParams();
 
+  // If opened from "Chat" button
   if (internData.id && internData.name) {
-    
     openChat({
       _id: internData.id,
       name: internData.name
@@ -322,3 +394,5 @@
 };
 </script>
 
+</body>
+</html>

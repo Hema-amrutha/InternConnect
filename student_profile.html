@@ -54,56 +54,39 @@
       <!-- JS Will Fill This -->
     </div>
   </div>
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const id = urlParams.get("id");
 
-  <script>
-    const data = {
-      disha: {
-        name: "Disha Jain",
-        branch: "Information Technology",
-        year: "Final Year",
-        email: "dishajain@college.edu",
-        internship: "SDE Intern @ Google",
-      },
-      annapurna: {
-        name: "Annapurna",
-        branch: "Information Technology",
-        year: "Final Year",
-        email: "annapurna@college.edu",
-        internship: "SDE @ Intuit",
-      },
-      anusha: {
-        name: "Anusha",
-        branch: "Information Technology",
-        year: "Final Year",
-        email: "anusha@college.edu",
-        internship: "SDE @ Adobe",
-      },
-      ragini: {
-        name: "Ragini",
-        branch: "Information Technology",
-        year: "Final Year",
-        email: "ragini@college.edu",
-        internship: "SDE @ Microsoft",
-      }
-    };
+console.log("Student ID:", id);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get("id");
+if (!id) {
+  document.getElementById("profileContent").innerHTML = "<p>No ID provided.</p>";
+} else {
+  fetch(`/api/students/${id}`)   // ✅ student API
+    .then(res => {
+      if (!res.ok) throw new Error("Not found");
+      return res.json();
+    })
+    .then(student => {
+      const initials = student.name
+        ? student.name.split(" ").map(w => w[0]).join("").toUpperCase()
+        : "ST";
 
-    if (data[id]) {
-      const student = data[id];
-      document.getElementById("initials").innerText = student.name.split(" ").map(w => w[0]).join("");
+      document.getElementById("initials").innerText = initials;
+
       document.getElementById("profileContent").innerHTML = `
-        <p><span>Name:</span> ${student.name}</p>
-        <p><span>Branch:</span> ${student.branch}</p>
-        <p><span>Year:</span> ${student.year}</p>
-        <p><span>Email:</span> ${student.email}</p>
-        <p><span>Internship:</span> ${student.internship}</p>
+        <p><span>Name:</span> ${student.name || "N/A"}</p>
+        <p><span>Email:</span> ${student.email || "N/A"}</p>
+        <p><span>Branch:</span> ${student.branch || "N/A"}</p>
+        <p><span>Year:</span> ${student.year || "N/A"}</p>
       `;
-    } else {
+    })
+    .catch(err => {
+      console.error(err);
       document.getElementById("profileContent").innerHTML = "<p>Profile not found.</p>";
-    }
-  </script>
-
+    });
+}
+</script>
 </body>
 </html>

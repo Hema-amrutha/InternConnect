@@ -1,3 +1,4 @@
+
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -225,7 +226,7 @@ app.get('/api/incoming-requests', async (req, res) => {
   const requesterIds = requests.map(r => new ObjectId(r.requesterId));
   const students = await db.collection('users')
     .find({ _id: { $in: requesterIds } })
-    .project({ name: 1, profilePic: 1 })
+    .project({ name: 1, profilePic: 1, branch: 1, year: 1 })
     .toArray();
 
   const merged = requests.map(req => ({
@@ -308,66 +309,35 @@ app.get('/api/myrequests', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+// Get accepted students for logged-in intern (Chats)
+app.get('/api/intern/accepted-students', async (req, res) => {
+  const internId = req.session.userId;
 
-// Get all interns accepted by logged-in student
-app.get('/api/acceptedInterns', async (req, res) => {
-  if (!req.session.userId) {
+  if (!internId) {
     return res.status(401).json({ error: 'Not logged in' });
   }
 
   try {
-    const currentStudentId = req.session.userId;
-
     const acceptedRequests = await db.collection('requests')
-      .find({ requesterId: currentStudentId, status: 'Accepted' })
+      .find({
+        receiverId: internId,
+        status: 'Accepted'
+      })
       .toArray();
 
-    const internIds = acceptedRequests.map(req => new ObjectId(req.receiverId));
+    const studentIds = acceptedRequests.map(r => new ObjectId(r.requesterId));
 
-    const interns = await db.collection('users')
-      .find({ _id: { $in: internIds } })
-      .project({ name: 1, email: 1 })
-      .toArray();
-
-    const result = interns.map(i => ({
-      name: i.name,
-      username: i.email.split('@')[0]
-    }));
-
-    res.json(result);
-  } catch (err) {
-    console.error('Error fetching accepted interns:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Get accepted students for a given intern
-// ✅ GET /api/intern/accepted-students/:internId
-app.get('/api/intern/accepted-students/:internId', async (req, res) => {
-  const internId = req.params.internId;
-
-  try {
-    // Step 1: Get all accepted connections for the intern
-    const connections = await db.collection('connections').find({
-      internId,
-      status: 'accepted'
-    }).toArray();
-
-    const studentIds = connections.map(conn => conn.studentId);
-
-    // Step 2: Fetch student details
-    const students = await db.collection('students')
+    const students = await db.collection('users')
       .find({ _id: { $in: studentIds } })
-      .project({ _id: 1, name: 1 }) // fetch only id and name
+      .project({ name: 1 })
       .toArray();
 
     res.json(students);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Something went wrong' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 // Debug routes
 app.get('/debug/requests', async (req, res) => {
@@ -492,6 +462,56 @@ app.get('/logout', (req, res) => {
     res.redirect('/'); // This loads login.html from root
   });
 });
+// Get accepted students for logged-in intern (for chat list)
+app.get('/api/intern/chats', async (req, res) => {
+  try {
+    const internId = req.session.userId;
+
+    if (!internId) {
+      return res.status(401).json({ error: 'Not logged in' });
+    }
+
+    console.log("Logged-in intern:", internId);
+
+    // 1. Get accepted requests where this intern is receiver
+    const requests = await db.collection('requests')
+      .find({
+        receiverId: internId.toString(),
+        status: 'Accepted'
+      })
+      .toArray();
+
+    console.log("Accepted requests:", requests);
+
+    if (requests.length === 0) {
+      return res.json([]);
+    }
+
+    // 2. Convert requesterIds safely
+    const studentIds = requests
+      .filter(r => ObjectId.isValid(r.requesterId))
+      .map(r => new ObjectId(r.requesterId));
+
+    console.log("Converted studentIds:", studentIds);
+
+    // 3. Fetch students
+    const students = await db.collection('users')
+      .find({
+        _id: { $in: studentIds },
+        role: 'student'
+      })
+      .project({ name: 1 })
+      .toArray();
+
+    console.log("Students found:", students);
+
+    res.json(students);
+
+  } catch (err) {
+    console.error("Intern chat error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 app.get('/api/students', async (req, res) => {
   try {
     const students = await db.collection('users')
@@ -505,6 +525,7 @@ app.get('/api/students', async (req, res) => {
     res.status(500).send('Internal server error');
   }
 });
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'login.html'));
 });
@@ -520,17 +541,113 @@ app.post('/api/accept-request', async (req, res) => {
 
   res.send({ success: true });
 });
-app.get('/api/students', async (req, res) => {
+
+
+app.get('/api/students/:id', async (req, res) => {
   try {
-    const students = await db.collection('users')
-      .find({ role: 'student' })
-      .project({ password: 0 })
+    const id = req.params.id;
+
+    console.log("Fetching student:", id);
+
+    const student = await db.collection('users').findOne({
+      _id: new ObjectId(id),
+      role: 'student'
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json(student);
+  } catch (err) {
+    console.error("Student API error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+app.get('/api/student/incoming-requests', async (req, res) => {
+  const studentId = req.session.userId;
+  if (!studentId) return res.status(401).json({ error: 'Not logged in' });
+
+  try {
+    // 1. Get pending requests sent TO this student
+    const requests = await db.collection('requests')
+      .find({
+        receiverId: studentId,
+        status: 'Pending'
+      })
       .toArray();
 
-    res.json(students);
-  } catch (error) {
-    console.error('Error fetching students:', error);
-    res.status(500).send('Internal server error');
+    // 2. Get intern IDs (requesterId)
+    const internIds = requests.map(r => new ObjectId(r.requesterId));
+
+    // 3. Fetch intern details
+    const interns = await db.collection('users')
+      .find({ _id: { $in: internIds } })
+      .project({ name: 1, email: 1, 'internship.internRole': 1 })
+      .toArray();
+
+    // 4. Merge data
+    const result = requests.map(req => {
+      const intern = interns.find(i => i._id.toString() === req.requesterId);
+      return {
+        requestId: req._id,
+        internId: req.requesterId,
+        internName: intern?.name || 'Intern',
+        internRole: intern?.internship?.internRole || ''
+      };
+    });
+
+    res.json(result);
+
+  } catch (err) {
+    console.error("Student incoming error:", err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+app.post('/api/requests/update', async (req, res) => {
+  const { requestId, status } = req.body;
+
+  try {
+    await db.collection('requests').updateOne(
+      { _id: new ObjectId(requestId) },
+      { $set: { status } }
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Update failed' });
+  }
+});
+// GET requests received by the logged-in student
+app.get('/api/receivedrequests', async (req, res) => {
+  const userId = req.session.userId;
+  if (!userId) return res.status(401).json({ error: 'Not logged in' });
+
+  try {
+    const requests = await db.collection('requests')
+      .find({ receiverId: userId, status: 'Pending' })
+      .toArray();
+
+    // For each request, fetch the requester’s name from the users collection
+    const requestsWithNames = await Promise.all(
+      requests.map(async (r) => {
+        const user = await db.collection('users').findOne(
+  { _id: new ObjectId(r.requesterId) },
+  { projection: { name: 1, 'internship.internRole': 1, 'internship.company': 1 } }
+);
+
+return {
+  ...r,
+  requesterName: user ? user.name : 'Unknown',
+  role: user?.internship?.internRole || '',
+  company: user?.internship?.company || ''
+};
+      })
+    );
+
+    res.json(requestsWithNames);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 // Start the server after DB connects

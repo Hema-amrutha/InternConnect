@@ -174,6 +174,10 @@
       border-radius: 18px 18px 18px 0;
       border: 1px solid #ddd;
     }
+    .student-item.active-chat {
+  background-color: #0d6efd;
+  color: white;
+}
   </style>
 </head>
 <body>
@@ -182,7 +186,7 @@
     <h1>InternConnect</h1>
     <nav>
       <ul>
-        <li><a href="intern_home.html">Home</a></li>
+        <li><a href="intern home.html">Home</a></li>
         <li><a href="my_requests.html">My Connections</a></li>
         <li><a href="intern_chat.html">Chats</a></li>
         <li><a href="profile.html">Profile</a></li>
@@ -212,8 +216,20 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
   const socket = io("http://localhost:3000"); // Use your server domain in production
-  const internId = localStorage.getItem("loggedInInternId");
+  let internId = null;      // ✅ MUST exist
   let currentChat = '';
+  async function getLoggedInIntern() {
+  try {
+    const res = await fetch('/api/profile');
+    const user = await res.json();
+
+    internId = user._id;
+    console.log("Logged in intern:", internId);
+
+  } catch (err) {
+    console.error("Error fetching intern:", err);
+  }
+}
 
   async function loadConnectedStudents() {
     if (!internId) {
@@ -223,7 +239,7 @@
     }
 
     try {
-      const res = await fetch(`/api/intern/accepted-students/${internId}`);
+     const res = await fetch('/api/intern/accepted-students');
       const students = await res.json();
 
       const connectedList = document.getElementById('connected-students-list');
@@ -237,7 +253,7 @@
       students.forEach(student => {
         const li = document.createElement('li');
         li.textContent = student.name;
-        li.onclick = () => openChat(student._id, student.name);
+        li.onclick = () => openChat(student._id, student.name, li);
         li.classList.add('student-item');
         li.style.cursor = 'pointer';
         connectedList.appendChild(li);
@@ -249,15 +265,50 @@
     }
   }
 
-  function openChat(studentId, studentName) {
+ function openChat(studentId, studentName, element) {
+
+  // 🔵 Remove old active highlight
+  document.querySelectorAll('.student-item')
+    .forEach(item => item.classList.remove('active-chat'));
+
+  // 🔵 Add highlight to clicked one
+  if (element) {
+    element.classList.add('active-chat');
+  }
+
   currentChat = studentId;
-  document.getElementById('chat-title').innerText = `Chat with ${studentName}`;
+
+  document.getElementById('chat-title').innerText =
+    `Chat with ${studentName}`;
+
   document.getElementById('chat-box').innerHTML = '';
   document.title = `Chat with ${studentName}`;
 
-  const roomId = [internId, studentId].sort().join('-');  // ✅ Same logic everywhere
-  socket.emit('joinRoom', { roomId });  // ✅ Explicitly send roomId
+  socket.emit('joinRoom', {
+    senderId: internId,
+    receiverId: studentId
+  });
 
+  fetch(`/api/messages/${internId}/${studentId}`)
+    .then(res => res.json())
+    .then(messages => {
+      const chatBox = document.getElementById('chat-box');
+
+      messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className =
+          msg.senderId === internId
+            ? 'message sent'
+            : 'message received';
+
+        div.innerHTML = msg.message;
+        chatBox.appendChild(div);
+      });
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+// ✅ Explicitly send roomId
+console.log("Intern ID:", internId);
   fetch(`/api/messages/${internId}/${studentId}`)
     .then(res => res.json())
     .then(messages => {
@@ -279,34 +330,42 @@
 
     const roomId = [internId, currentChat].sort().join('-');
     socket.emit('sendMessage', {
-      roomId,
-      senderId: internId,
-      receiverId: currentChat,
-      message
-    });
+  senderId: internId,
+  receiverId: currentChat,
+  message
+});
 
-    const chatBox = document.getElementById('chat-box');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message sent';
-    msgDiv.innerHTML = `<strong>You:</strong> ${message}`;
-    chatBox.appendChild(msgDiv);
     input.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
   socket.on('receiveMessage', (data) => {
-    if (data.senderId !== currentChat) return;
-    const chatBox = document.getElementById('chat-box');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'message received';
-    msgDiv.innerHTML = `<strong>Student:</strong> ${data.message}`;
-    chatBox.appendChild(msgDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  });
 
-  window.addEventListener('DOMContentLoaded', () => {
-    loadConnectedStudents();
-  });
+  // Show only if this chat is currently open
+  if (
+    data.senderId !== currentChat &&
+    data.receiverId !== currentChat
+  ) return;
+
+  const chatBox = document.getElementById('chat-box');
+
+  const msgDiv = document.createElement('div');
+
+  msgDiv.className =
+    data.senderId === internId
+      ? 'message sent'
+      : 'message received';
+
+  msgDiv.innerHTML =
+    `<strong>${data.senderId === internId ? 'You' : 'Student'}:</strong> ${data.message}`;
+
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+});
+  window.addEventListener('DOMContentLoaded', async () => {
+  await getLoggedInIntern();   // ✅ get session ID first
+  await loadConnectedStudents();
+});
 </script>
 
 </body>
