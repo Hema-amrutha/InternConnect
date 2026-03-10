@@ -145,21 +145,36 @@
     }
 
     /* Request Button */
-    .request-btn {
-      background-color: #2980b9; /* Dark Blue */
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 30px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
+.request-btn {
+  background-color: #2980b9; /* Dark Blue */
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 30px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
 
-    .request-btn:hover {
-      background-color: #1c5980; /* Darker Blue on Hover */
-    }
+.request-btn:hover {
+  background-color: #1c5980;
+}
 
+/* Chat Button - same style, green */
+.chat-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 25px;      /* same as request */
+  border-radius: 30px;     /* pill shape */
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.chat-btn:hover {
+  background-color: #218838;
+}
     /* Footer */
     footer {
       background-color: #2c3e50; /* Dark Gray */
@@ -297,7 +312,7 @@ function displayStudents(students) {
     const status = requestMap.get(intern._id.toString()) || null;
 
     let buttonHTML = '';
-    if (status === 'Accepted') {
+   if (status && status.toLowerCase() === 'accepted') {
       buttonHTML = `<button class="chat-btn">Chat</button>`;
     } else if (status === 'Pending') {
       buttonHTML = `<button class="request-btn" disabled>Requested</button>`;
@@ -357,14 +372,13 @@ function displayStudents(students) {
     }
 
     // Chat button
-    const chatBtn = card.querySelector('.chat-btn');
-    if (chatBtn) {
-      chatBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.location.href = `chatpage.html?id=${intern._id}`;
-      });
-    }
-
+const chatBtn = card.querySelector('.chat-btn');
+if (chatBtn) {
+  chatBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.location.href = `intern_chat.html?id=${intern._id}&name=${intern.name}`;
+  });
+}
     container.appendChild(card);
   });
 }

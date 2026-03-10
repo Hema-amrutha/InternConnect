@@ -112,7 +112,9 @@
         <p><strong>Branch:</strong> <span id="branch">Loading...</span></p>
         <p><strong>Year:</strong> <span id="year">Loading...</span></p>
         <p><strong>Email:</strong> <span id="email">Loading...</span></p>
-        <p><strong>Internship:</strong> <span id="internship">Loading...</span></p>
+        <p id="internshipRow">
+  <strong>Internship:</strong> <span id="internship">Loading...</span>
+</p>
         <button class="edit-button" onclick="alert('Edit feature coming soon!')">Edit Profile</button>
       </div>
     </div>
@@ -140,13 +142,15 @@
         document.getElementById('branch').textContent = user.branch || 'N/A';
         document.getElementById('year').textContent = user.year || 'N/A';
         document.getElementById('email').textContent = user.email;
-        const internship = user.internship 
-                   ? `${user.internship.role || ''} at ${user.internship.company || ''}`.trim() 
-                   : 'N/A';
+        const internshipRow = document.getElementById('internshipRow');
 
-document.getElementById('internship').textContent = internship || 'N/A';
-
-
+if (user.role === 'intern' && user.internship) {
+  const internshipText = `${user.internship.internRole || ''} at ${user.internship.company || ''}`.trim();
+  document.getElementById('internship').textContent = internshipText || 'N/A';
+} else {
+  // Hide internship row for students
+  internshipRow.style.display = 'none';
+}
         const initials = user.name.split(" ").map(n => n[0]).join("").toUpperCase();
         document.getElementById('profile-initials').textContent = initials;
       })

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Register</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -12,15 +13,18 @@
     }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      height: 100vh;
-      display: flex;
-    }
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+}
 
     .left-side {
       flex: 1;
       background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-        url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80') no-repeat center center;
+        url('https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1050&q=80')
+        no-repeat center center;
       background-size: cover;
       color: white;
       display: flex;
@@ -36,12 +40,14 @@
     }
 
     .right-side {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #f9f9f9;
-    }
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;   /* changed from center */
+  background-color: #f9f9f9;
+  overflow-y: auto;
+  padding: 40px 0;
+}
 
     .form-container {
       background-color: white;
@@ -78,9 +84,7 @@
       font-size: 1rem;
     }
 
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="password"]:focus,
+    input:focus,
     select:focus {
       border-color: #667eea;
       outline: none;
@@ -123,6 +127,13 @@
       display: none;
     }
 
+    #error-message {
+      color: red;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
     @media (max-width: 768px) {
       .left-side {
         display: none;
@@ -132,66 +143,106 @@
       }
     }
   </style>
-  <script>
-    function toggleInternFields() {
-      const roleSelect = document.getElementById('role');
-      const internFields = document.getElementById('internFields');
-      internFields.style.display = roleSelect.value === 'intern' ? 'block' : 'none';
-    }
-
-    window.onload = function () {
-      document.getElementById('role').addEventListener('change', toggleInternFields);
-      toggleInternFields();
-    };
-  </script>
 </head>
+
 <body>
+
   <div class="left-side">
     <h1>Welcome to InternConnect – Learn, Connect, and Succeed</h1>
   </div>
+
   <div class="right-side">
     <div class="form-container">
       <h2>Register</h2>
-<!-- NO CHANGES TO HEAD, STYLE, OR SCRIPT SECTION -->
-<!-- Only form content is updated below -->
 
-<form action="/register" method="POST">
-  <label for="name">Name:</label>
-  <input type="text" name="name" id="name" placeholder="Your full name" required />
+      <form id="registerForm">
 
-  <label for="email">College Email:</label>
-  <input type="email" name="email" id="email" placeholder="example@svecw.edu.in" required />
+        <p id="error-message"></p>
+        <p id="success-message" style="color: green; font-weight: 500; text-align: center;"></p>
 
-  <label for="password">Password:</label>
-  <input type="password" name="password" id="password" placeholder="Enter password" required />
+        <label>Name:</label>
+        <input type="text" name="name" required />
 
-  <label for="branch">Branch:</label>
-  <input type="text" name="branch" id="branch" placeholder="Your branch" required />
+        <label>College Email:</label>
+        <input type="email" name="email" required />
 
-  <label for="year">Year:</label>
-  <input type="text" name="year" id="year" placeholder="Your year (e.g., 3rd)" required />
+        <label>Password:</label>
+        <input type="password" name="password" required />
 
-  <label for="role">Role:</label>
-  <select name="role" id="role" required>
-    <option value="">Select role</option>
-    <option value="student">Student</option>
-    <option value="intern">Intern</option>
-  </select>
+        <label>Branch:</label>
+        <input type="text" name="branch" required />
 
-  <!-- Intern-specific fields -->
-  <div id="internFields">
-    <label for="internRole">Internship Role:</label>
-    <input type="text" name="internRole" id="internRole" placeholder="e.g., Frontend Developer">
+        <label>Year:</label>
+        <input type="text" name="year" required />
 
-    <label for="internCompany">Company:</label>
-    <input type="text" name="internCompany" id="internCompany" placeholder="e.g., Google">
-  </div>
+        <label>Role:</label>
+        <select name="role" id="role" required>
+          <option value="">Select role</option>
+          <option value="student">Student</option>
+          <option value="intern">Intern</option>
+        </select>
 
-  <button type="submit">Register</button>
-</form>
-<p>Already have an account? <a href="/login">Login here</a></p>
+        <div id="internFields">
+          <label>Internship Role:</label>
+          <input type="text" name="internRole">
+
+          <label>Company:</label>
+          <input type="text" name="internCompany">
+        </div>
+
+        <button type="submit">Register</button>
+      </form>
+
+      <p>Already have an account? <a href="/">Login here</a></p>
 
     </div>
   </div>
+
+<script>
+
+// Toggle intern fields
+document.getElementById('role')
+  .addEventListener('change', function () {
+    document.getElementById('internFields').style.display =
+      this.value === 'intern' ? 'block' : 'none';
+  });
+
+// Handle form submission
+document.getElementById('registerForm')
+  .addEventListener('submit', async function (e) {
+
+  e.preventDefault();
+
+  const formData = new FormData(this);
+  const data = Object.fromEntries(formData.entries());
+
+  try {
+    const res = await fetch('/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      document.getElementById('error-message').innerText =
+        result.error;
+      return;
+    }
+
+    // Success
+    window.location.href = '/';
+
+  } catch (err) {
+    document.getElementById('error-message').innerText =
+      'Something went wrong. Try again.';
+  }
+});
+
+</script>
+
 </body>
 </html>

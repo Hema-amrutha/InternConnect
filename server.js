@@ -53,8 +53,11 @@ app.post('/register', async (req, res) => {
     }
 
     const existingUser = await db.collection('users').findOne({ email });
-    if (existingUser) return res.status(400).send('Email already registered');
-
+    if (existingUser) {
+  return res.status(400).json({
+    error: 'Email already registered'
+  });
+}
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = {
@@ -76,7 +79,9 @@ app.post('/register', async (req, res) => {
 
     await db.collection('users').insertOne(newUser);
 
-    res.redirect('/');
+    res.status(201).json({
+  message: 'User registered successfully'
+});
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
@@ -85,22 +90,48 @@ app.post('/register', async (req, res) => {
 
 // Login user
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await db.collection('users').findOne({ email });
+  try {
+    const { email, password } = req.body;
 
-  if (!user) return res.status(400).send('User not found');
+    const user = await db.collection('users').findOne({ email });
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.status(400).send('Incorrect password');
+    if (!user) {
+      return res.status(400).json({
+        error: 'User not found'
+      });
+    }
 
-  req.session.userId = user._id.toString();
+    const match = await bcrypt.compare(password, user.password);
 
-  if (user.role === 'student') {
-    res.redirect('/homepage.html');
-  } else if (user.role === 'intern') {
-    res.redirect('/intern home.html');
-  } else {
-    res.status(400).send('Invalid role');
+    if (!match) {
+      return res.status(400).json({
+        error: 'Incorrect password'
+      });
+    }
+
+    // Store session
+    req.session.userId = user._id.toString();
+
+    // Send redirect URL instead of redirecting directly
+    if (user.role === 'student') {
+      return res.json({
+        redirect: '/homepage.html'
+      });
+    } else if (user.role === 'intern') {
+      return res.json({
+        redirect: '/intern home.html'
+      });
+    } else {
+      return res.status(400).json({
+        error: 'Invalid role'
+      });
+    }
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      error: 'Server error'
+    });
   }
 });
 

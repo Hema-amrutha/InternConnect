@@ -308,19 +308,6 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 // ✅ Explicitly send roomId
-console.log("Intern ID:", internId);
-  fetch(`/api/messages/${internId}/${studentId}`)
-    .then(res => res.json())
-    .then(messages => {
-      const chatBox = document.getElementById('chat-box');
-      messages.forEach(msg => {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = msg.senderId === internId ? 'message sent' : 'message received';
-        msgDiv.innerHTML = `<strong>${msg.senderId === internId ? 'You' : 'Student'}:</strong> ${msg.message}`;
-        chatBox.appendChild(msgDiv);
-      });
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
 }
 
   function sendMessage() {

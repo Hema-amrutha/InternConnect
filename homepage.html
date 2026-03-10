@@ -320,7 +320,7 @@ function displayInterns(interns) {
             body: JSON.stringify({ receiverId: intern._id })
           });
           if (!res.ok) throw new Error('Failed to send request');
-          alert('Request sent!');
+    
           requestBtn.disabled = true;
           requestBtn.textContent = 'Requested';
         } catch (err) {
