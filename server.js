@@ -681,6 +681,99 @@ return {
     res.status(500).json({ error: err.message });
   }
 });
+// API: Intern posts internship opening
+app.post('/api/internships', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+
+  try {
+    const { company, role, location, applyLink, deadline, description , skills} = req.body;
+
+    // Get intern details
+    const intern = await db.collection('users').findOne({
+      _id: new ObjectId(req.session.userId),
+      role: 'intern'
+    });
+
+    if (!intern) {
+      return res.status(403).json({ error: 'Only interns can post internships' });
+    }
+
+    const newInternship = {
+      company,
+      role,
+      location,
+      applyLink,
+      deadline,
+      description,
+      skills,
+      postedBy: intern.name,
+      postedById: intern._id.toString(),
+      postedDate: new Date()
+    };
+
+    await db.collection('internships').insertOne(newInternship);
+
+    res.json({ message: "Internship posted successfully" });
+
+  } catch (error) {
+    console.error("Error posting internship:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+// API: Get all internship openings
+app.get('/api/internships', async (req, res) => {
+  try {
+
+    const internships = await db.collection('internships')
+      .find()
+      .sort({ postedDate: -1 })
+      .toArray();
+
+    res.json(internships);
+
+  } catch (error) {
+    console.error("Error fetching internships:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+// API: Filter internships
+app.get("/api/internships/filter", async (req, res) => {
+
+  const { type, value } = req.query;
+
+  let filter = {};
+
+  if (type && value) {
+    filter[type] = { $regex: value, $options: "i" };
+  }
+
+  const jobs = await db
+    .collection("internships")
+    .find(filter)
+    .toArray();
+
+  res.json(jobs);
+
+});
+const fetch = require("node-fetch");
+
+app.post("/api/recommend", async (req, res) => {
+
+  const { skills } = req.body;
+
+  const mlRes = await fetch("http://localhost:5001/recommend", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skills })
+  });
+
+  const data = await mlRes.json();
+
+  res.json(data);
+
+});
 // Start the server after DB connects
 connectDB().then(() => {
   server.listen(PORT, () => {

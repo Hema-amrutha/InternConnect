@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Internship Details</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #ecf0f1;
+            margin: 0;
+        }
+
+        .container {
+            width: 70%;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .company {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .role {
+            font-size: 20px;
+            margin: 10px 0;
+        }
+
+        .info {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        .description {
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+
+        .apply-btn {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" id="details"></div>
+
+    <script>
+        async function loadDetails() {
+
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get("id");
+
+            const res = await fetch("/api/internships");
+            const jobs = await res.json();
+
+            const job = jobs.find(j => j._id === id);
+
+            const container = document.getElementById("details");
+
+            container.innerHTML = `
+                <div class="company">${job.company}</div>
+
+                <div class="role">${job.role}</div>
+
+                <div class="info">📍 Location: ${job.location}</div>
+
+                <div class="info">⏳ Deadline: ${job.deadline}</div>
+
+                <div class="info">👤 Posted by: ${job.postedBy}</div>
+
+                <div class="description">
+                    ${job.description}
+                </div>
+
+                <h3>Responsibilities</h3>
+                <div class="responsibilities">
+                    ${job.responsibilities || "No responsibilities provided"}
+                </div>
+
+                <h3>Skills Required</h3>
+                <div class="skills">
+                    ${job.skills ? job.skills.join(", ") : "No skills mentioned"}
+                </div>
+
+                <br>
+
+                <a class="apply-btn" href="${job.applyLink}" target="_blank">
+                    Apply Now
+                </a>
+            `;
+        }
+
+        loadDetails();
+    </script>
+
+</body>
+</html>

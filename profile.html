@@ -99,6 +99,9 @@
       <a href="#" id="homeLink">Home</a>
       <a href="#" id="requestLink">My Requests</a>
       <a href="#" id="chatLink">Chats</a>
+      <a href="post_internship.html" id="postInternshipLink" style="display:none">Post Internship</a>
+      <a href="internships.html" id="internshipsLink" style="display:none">InternOpenings</a>
+
       <a href="profile.html">Profile</a>
       <a href="/logout">Logout</a>
     </div>
@@ -172,16 +175,26 @@ async function setNavigationByRole() {
     const chatLink = document.getElementById('chatLink');
     const requestLink = document.getElementById('requestLink');
 
+    const postInternshipLink = document.getElementById('postInternshipLink');
+    const internshipsLink = document.getElementById('internshipsLink');
+
     if (user.role === 'intern') {
+
       // Intern navigation
       homeLink.href = 'intern home.html';
       chatLink.href = 'intern_chat.html';
       requestLink.href = 'my_requests.html';
+
+      postInternshipLink.style.display = 'inline';
+
     } else {
+
       // Student navigation
       homeLink.href = 'homepage.html';
       chatLink.href = 'chat.html';
       requestLink.href = 'myrequests.html';
+
+      internshipsLink.style.display = 'inline';
     }
 
   } catch (err) {
@@ -190,9 +203,7 @@ async function setNavigationByRole() {
   }
 }
 
-// Run when page loads
 document.addEventListener('DOMContentLoaded', setNavigationByRole);
-setHomeRedirect();
 
   </script>
   

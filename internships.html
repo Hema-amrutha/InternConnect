@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InternConnect - Internship Openings</title>
+
+    <style>
+        /* Body */
+
+        body {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #3498db;
+            padding: 20px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-title {
+            font-weight: bold;
+            font-size: 22px;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .logo-subtext {
+            font-size: 14px;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #f1c40f;
+        }
+
+        /* Page Title */
+
+        .page-title {
+            text-align: center;
+            margin: 30px auto 20px;
+            font-size: 24px;
+            font-weight: 600;
+            color: #2980b9;
+        }
+
+        /* Internship List */
+
+        .internship-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 85%;
+            margin: 0 auto;
+        }
+
+        /* Card */
+
+        .internship-card {
+            background: white;
+            border-left: 5px solid #2ecc71;
+            border-radius: 8px;
+            width: 100%;
+            padding: 14px 18px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .internship-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
+        }
+
+        .internship-info {
+            line-height: 1.4;
+            font-size: 15px;
+        }
+
+        .internship-info strong {
+            color: #3498db;
+            font-size: 18px;
+        }
+
+        /* Buttons */
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .view-btn {
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .view-btn:hover {
+            background: #1c5980;
+        }
+
+        .apply-btn {
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .apply-btn:hover {
+            background: #636e72;
+        }
+
+        /* Footer */
+
+        footer {
+            background: #2c3e50;
+            text-align: center;
+            padding: 20px;
+            color: white;
+            margin-top: auto;
+        }
+
+        .internship-info span {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .filter-bar {
+            width: 70%;
+            margin: 20px auto;
+            display: flex;
+            gap: 15px;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            background: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .branch-box {
+            width: 180px;
+            padding: 12px;
+            border-radius: 25px;
+            border: none;
+            background: #e0e0e0;
+        }
+
+        .filter-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #3b8ec2;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+
+    <nav>
+        <div>
+            <div class="logo-title">InternConnect</div>
+            <div class="logo-subtext">Learn. Connect. Succeed.</div>
+        </div>
+
+        <div>
+            <a href="homepage.html">Home</a>
+            <a href="myrequests.html">My Requests</a>
+            <a href="chat.html">Chats</a>
+            <a href="internships.html">Internship Openings</a>
+            <a href="profile.html">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </nav>
+    <!-- Title -->
+    <div class="filter-bar">
+        <input type="text" id="filterValue" placeholder="Search internships..." class="search-box">
+        <select id="filterType" class="branch-box">
+            <option value="">Filter By</option>
+            <option value="role">Role</option>
+            <option value="company">Company</option>
+            <option value="location">Location</option>
+            <option value="skills">Skill</option>
+        </select>
+
+        <button onclick="applyFilter()" class="filter-btn">
+            Filter
+        </button>
+
+    </div>
+    <!-- Internship Cards -->
+
+    <div class="internship-list" id="internshipList"></div>
+
+    <!-- Script -->
+<script>
+
+let allInternships = [];
+
+
+// ---------- SHOW ----------
+
+function showInternships(jobs) {
+
+    const container = document.getElementById("internshipList");
+
+    container.innerHTML = "";
+
+    jobs.forEach(job => {
+
+        const card = document.createElement("div");
+        card.className = "internship-card";
+
+        card.innerHTML = `
+            <div class="internship-info">
+
+                <strong>${job.company}</strong><br>
+
+                <span>${job.role}</span><br>
+
+                📍 ${job.location || "Location not specified"}<br>
+
+                ⏳ Deadline: ${job.deadline || "Not specified"}<br>
+
+                👤 Posted by: ${job.postedBy}
+
+            </div>
+
+            <div class="button-group">
+
+                <a class="view-btn"
+                   href="internship_details.html?id=${job._id}">
+                   View Details
+                </a>
+
+                <a class="apply-btn"
+                   href="${job.applyLink}"
+                   target="_blank">
+                   Apply
+                </a>
+
+            </div>
+        `;
+
+        container.appendChild(card);
+
+    });
+}
+// ---------- LOAD ----------
+async function loadInternships() {
+
+    try {
+
+        const res = await fetch("/api/internships");
+        const jobs = await res.json();
+
+        allInternships = jobs;
+
+        showInternships(jobs);
+
+    } catch (err) {
+
+        console.log(err);
+
+    }
+
+}
+
+
+// ---------- FILTER ----------
+
+function applyFilter() {
+
+    const type = document.getElementById("filterType").value;
+    const value =
+        document.getElementById("filterValue").value.toLowerCase();
+
+    let filtered = allInternships.filter(job => {
+
+        if (!type || value === "") return true;
+
+        if (type === "skills") {
+
+            return job.skills?.some(skill =>
+                skill.toLowerCase().includes(value)
+            );
+
+        }
+
+        return job[type]?.toLowerCase().includes(value);
+
+    });
+    showInternships(filtered);
+}
+// ---------- EVENTS (LIVE FILTER) ----------
+
+document
+  .getElementById("filterValue")
+  .addEventListener("input", applyFilter);
+document
+  .getElementById("filterType")
+  .addEventListener("change", applyFilter);
+// ---------- START ----------
+
+loadInternships();
+
+</script>
+    <!-- Footer -->
+
+    <footer>
+        © 2026 InternConnect. All rights reserved.
+    </footer>
+
+</body>
+
+</html>

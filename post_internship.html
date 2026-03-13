@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Post Internship Opening</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #eef2f5;
+        }
+
+        /* NAVBAR */
+
+        .navbar {
+            background: #3b8ec2;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 40px;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .nav-links a {
+            color: white;
+            margin-left: 25px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* PAGE TITLE */
+
+        .title {
+            text-align: center;
+            margin: 40px 0;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+
+        /* FORM CARD */
+
+        .form-card {
+            width: 500px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-left: 6px solid #2ecc71;
+        }
+
+        /* INPUTS */
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        textarea {
+            height: 80px;
+            resize: none;
+        }
+
+        /* BUTTON */
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: #3b8ec2;
+            color: white;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2f78a6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+
+        <div class="logo">
+            INTERNCONNECT
+        </div>
+
+        <div class="nav-links">
+            <a href="intern home.html">Home</a>
+            <a href="my_requests.html">My Connections</a>
+            <a href="intern_chat.html">Chats</a>
+            <a href="post_internship.html" class="post-job-btn">PostInternship</a>
+            <a href="profile.html">Profile</a>
+            <a href="/logout">Logout</a>
+        </div>
+
+    </div>
+
+    <div class="title">
+        Post Internship Opening
+    </div>
+
+    <div class="form-card">
+
+        <form id="internshipForm">
+
+            <div class="form-group">
+                <label>Company</label>
+                <input type="text" id="company" required>
+            </div>
+
+            <div class="form-group">
+                <label>Role</label>
+                <input type="text" id="role" required>
+            </div>
+
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="location">
+            </div>
+
+            <div class="form-group">
+                <label>Application Link</label>
+                <input type="url" id="applyLink" required>
+            </div>
+
+            <div class="form-group">
+                <label>Deadline</label>
+                <input type="date" id="deadline">
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="description"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Responsibilities</label>
+                <textarea id="responsibilities"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Skills Required</label>
+                <input type="text" id="skills" placeholder="Ex: Java, React, Node, SQL">
+</div>
+            <button type="submit">
+                Post Internship
+            </button>
+
+        </form>
+
+    </div>
+
+    <script>
+        document.getElementById("internshipForm").addEventListener("submit", async function (e) {
+
+            e.preventDefault();
+
+            const data = {
+                company: document.getElementById("company").value,
+                role: document.getElementById("role").value,
+                location: document.getElementById("location").value,
+                applyLink: document.getElementById("applyLink").value,
+                deadline: document.getElementById("deadline").value,
+                description: document.getElementById("description").value,
+                responsibilities: document.getElementById("responsibilities").value,
+                skills: document.getElementById("skills").value.split(",")
+            };
+
+            try {
+
+                const res = await fetch("/api/internships", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (!res.ok) {
+                    alert(result.error || "Failed to post internship");
+                    return;
+                }
+
+                alert(result.message);
+
+                document.getElementById("internshipForm").reset();
+
+            } catch (err) {
+
+                console.error(err);
+                alert("Server error. Please try again.");
+
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>
